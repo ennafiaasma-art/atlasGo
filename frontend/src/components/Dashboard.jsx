@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, MapPin, ChevronDown, Heart, User, ArrowRight, Star,
-  Compass, Trees, Building2, Landmark, Utensils, Users, Sparkles
+  Compass, Trees, Building2, Landmark, Utensils, Users, Sparkles,
+  ChevronLeft
 } from 'lucide-react';
 
 // 1. Navbar
@@ -45,8 +46,55 @@ const Navbar = () => (
   </nav>
 );
 
-// 2. Hero + Search + Categories
+// 2. Hero + Search + Categories Slider
 const HeroSection = () => {
+  const slides = [
+    {
+      img: '/images/bm.jpg',
+      info1: "Aïn Asserdoun",
+      info1Sub: "Béni Mellal",
+      info2: "Source d'eau",
+      info2Sub: "Nature & Jardin",
+      info3: "Meilleure période",
+      info3Sub: "Toute l'année"
+    },
+    {
+      img: '/images/bin.jpg',
+      info1: "Lac Bin El Ouidane",
+      info1Sub: "Province d'Azilal",
+      info2: "Activités",
+      info2Sub: "Kayak & Nautisme",
+      info3: "Meilleure période",
+      info3Sub: "Mai - Septembre"
+    },
+    {
+      img: '/images/oh.jpg',
+      info1: "Cascades d'Ouzoud",
+      info1Sub: "Province d'Azilal",
+      info2: "Hauteur",
+      info2Sub: "110 mètres",
+      info3: "Meilleure période",
+      info3Sub: "Mars - Juin"
+    }
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+  };
+
   const categories = [
     { label: "Tous", icon: Compass, active: true },
     { label: "Nature", icon: Trees },
@@ -60,9 +108,13 @@ const HeroSection = () => {
 
   return (
     <div className="relative px-6 lg:px-12 pt-4">
-      {/* Hero Banner */}
-      <div className="relative h-[420px] rounded-3xl overflow-hidden shadow-lg bg-cover bg-center flex items-center px-8 lg:px-16 text-white"
-        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200')` }}>
+      {/* Hero Banner Slider */}
+      <div 
+        className="relative h-[420px] rounded-3xl overflow-hidden shadow-lg bg-cover bg-center transition-all duration-700 ease-in-out flex items-center px-8 lg:px-16 text-white"
+        style={{ 
+          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25)), url('${slides[currentIndex].img}')` 
+        }}
+      >
         <div className="max-w-xl z-10">
           <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
             Découvrez la beauté de <span className="text-emerald-400">Béni Mellal-Khénifra</span>
@@ -76,19 +128,46 @@ const HeroSection = () => {
         </div>
 
         {/* Floating Info Cards */}
-        <div className="hidden xl:flex flex-col gap-3 absolute right-12 top-12 z-10">
+        <div className="hidden xl:flex flex-col gap-3 absolute right-16 top-12 z-10">
           <div className="bg-white/90 backdrop-blur-md text-gray-800 p-3 px-4 rounded-xl shadow-sm text-sm border border-white/20">
-            <p className="font-bold">Cascades d'Ouzoud</p>
-            <p className="text-xs text-gray-500">Province d'Azilal</p>
+            <p className="font-bold">{slides[currentIndex].info1}</p>
+            <p className="text-xs text-gray-500">{slides[currentIndex].info1Sub}</p>
           </div>
           <div className="bg-white/90 backdrop-blur-md text-gray-800 p-3 px-4 rounded-xl shadow-sm text-sm border border-white/20">
-            <p className="font-bold">Altitude</p>
-            <p className="text-xs text-gray-500">1 060 m</p>
+            <p className="font-bold">{slides[currentIndex].info2}</p>
+            <p className="text-xs text-gray-500">{slides[currentIndex].info2Sub}</p>
           </div>
           <div className="bg-white/90 backdrop-blur-md text-gray-800 p-3 px-4 rounded-xl shadow-sm text-sm border border-white/20">
-            <p className="font-bold">Meilleure période</p>
-            <p className="text-xs text-gray-500">Mars - Juin</p>
+            <p className="font-bold">{slides[currentIndex].info3}</p>
+            <p className="text-xs text-gray-500">{slides[currentIndex].info3Sub}</p>
           </div>
+        </div>
+
+        {/* Navigation Arrows */}
+        <button 
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm transition"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button 
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm transition"
+        >
+          <ChevronDown className="w-6 h-6 -rotate-90" />
+        </button>
+
+        {/* Indicator Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {slides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-2.5 rounded-full transition-all ${
+                currentIndex === idx ? 'w-8 bg-emerald-400' : 'w-2.5 bg-white/50'
+              }`}
+            />
+          ))}
         </div>
       </div>
 
@@ -150,9 +229,9 @@ const HeroSection = () => {
 // 3. Destinations
 const PopularDestinations = () => {
   const list = [
-    { title: "Cascades d'Ouzoud", prov: "Province d'Azilal", rating: "4.8", img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400" },
-    { title: "Lac Bin El Ouidane", prov: "Province d'Azilal", rating: "4.6", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400" },
-    { title: "Aïn Asserdoun", prov: "Province de Khénifra", rating: "4.7", img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400" },
+    { title: "Cascades d'Ouzoud", prov: "Province d'Azilal", rating: "4.8", img: "/images/oh.jpg" },
+    { title: "Lac Bin El Ouidane", prov: "Province d'Azilal", rating: "4.6", img: "/images/bin.jpg" },
+    { title: "Aïn Asserdoun", prov: "Province de Béni Mellal", rating: "4.7", img: "/images/bm.jpg" },
     { title: "Géoparc M'Goun", prov: "Province d'Azilal", rating: "4.9", img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400" },
     { title: "Grotte d'Ifri N'Ammar", prov: "Province de Khénifra", rating: "4.5", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400" },
   ];
