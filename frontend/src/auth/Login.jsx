@@ -1,27 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, Compass, Trees } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Compass, Trees, Loader } from 'lucide-react';
 
 const Login = () => {
-  const navigate = useNavigate();
-
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    remember: false,
-  });
-
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,34 +21,33 @@ const Login = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // 1. حفظ البيانات فـ LocalStorage
-        if (data.token) localStorage.setItem('token', data.token);
-        if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+        const userToken = data.token || data.access_token || data.authorisation?.token;
 
-        // 2. التوجيه على حسب الـ Role فـ الداتابيز
-        const role = data.user?.role;
+        if (userToken) {
+          localStorage.setItem('token', userToken);
+          
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
 
-        if (role === 'admin') {
-          navigate('/admin/dashboard'); // مسار الأدمن
+          navigate('/user-dashboard', { replace: true });
         } else {
-          navigate('/dashboard'); // مسار المستخدم العادي (Client)
+          setError("Token non trouvé dans la réponse.");
         }
       } else {
         setError(data.message || 'Email ou mot de passe incorrect.');
       }
     } catch (err) {
-      setError('Impossible de se connecter au serveur. Vérifiez votre connexion.');
+      console.error('Erreur de connexion:', err);
+      setError('Impossible de se connecter au serveur.');
     } finally {
       setLoading(false);
     }
@@ -76,7 +63,6 @@ const Login = () => {
       <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
 
       <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[85vh]">
-        
         <div className="lg:col-span-6 bg-white/95 backdrop-blur-md rounded-3xl p-8 lg:p-10 shadow-2xl border border-white/40 max-w-lg w-full mx-auto">
           
           <div className="flex items-center gap-3 mb-6">
@@ -95,34 +81,35 @@ const Login = () => {
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-xs rounded-xl">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl">
               {error}
             </div>
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit}>
+            
+            {/* Email */}
             <div className="relative">
               <Mail className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input 
                 type="email" 
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Adresse email" 
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Adresse email" 
                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
               />
             </div>
 
+            {/* Mot de passe */}
             <div className="relative">
               <Lock className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input 
                 type={showPassword ? "text" : "password"} 
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Mot de passe" 
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mot de passe" 
                 className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
               />
               <button 
@@ -138,9 +125,6 @@ const Login = () => {
               <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
                 <input 
                   type="checkbox" 
-                  name="remember"
-                  checked={formData.remember}
-                  onChange={handleChange}
                   className="w-4 h-4 text-emerald-700 accent-emerald-700 rounded border-gray-300 cursor-pointer"
                 />
                 Se souvenir de moi
@@ -155,8 +139,14 @@ const Login = () => {
               disabled={loading}
               className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/20 mt-2 disabled:opacity-50 cursor-pointer"
             >
-              <LogIn className="w-4 h-4" />
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  Se connecter
+                </>
+              )}
             </button>
           </form>
 

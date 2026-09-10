@@ -7,7 +7,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // جلب معلومات المستخدم باستعمال /me Route
     api.get('/me')
       .then(res => setUser(res.data))
       .catch(() => {

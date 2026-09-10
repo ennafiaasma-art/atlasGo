@@ -5,11 +5,9 @@ import { User, Mail, Lock, Eye, EyeOff, ShieldCheck, UserPlus, Trees } from 'luc
 const Register = () => {
   const navigate = useNavigate();
 
-  // 1. States للتحكم فـ إخفاء/إظهار كلمة السر
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 2. States لتخزين بيانات الـ Form
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -19,11 +17,9 @@ const Register = () => {
     terms: false,
   });
 
-  // 3. States لإدارة أخطاء وحالة الإرسال
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // دالة لتحديث الـ Inputs
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -32,12 +28,10 @@ const Register = () => {
     }));
   };
 
-  // 4. دالة إرسال البيانات للـ Backend (Laravel)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // التحقق المبدئي
     if (!formData.terms) {
       setError("Veuillez accepter les conditions d'utilisation.");
       return;
@@ -51,7 +45,6 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // بدل الرابط بـ Endpoint ديال Laravel عندك
       const response = await fetch('http://127.0.0.1:8000/api/register', {
         method: 'POST',
         headers: {
@@ -70,13 +63,11 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // فاش كينجح التسجيل
         if (data.token) {
           localStorage.setItem('token', data.token);
         }
-        navigate('/login'); // التوجيه لصفحة Login أو Dashboard
+        navigate('/login'); 
       } else {
-        // عرض الخطأ القادم من Laravel
         setError(data.message || 'Une erreur est survenue lors de l\'inscription.');
       }
     } catch (err) {
@@ -116,17 +107,14 @@ const Register = () => {
             Rejoignez-nous et découvrez les merveilles de Béni Mellal-Khénifra.
           </p>
 
-          {/* رسالة الخطأ إن وجدت */}
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-xs rounded-xl">
               {error}
             </div>
           )}
 
-          {/* Form مع ربط handleSubmit */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             
-            {/* Nom complet & Nom d'utilisateur */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="relative">
                 <User className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
