@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Http\Requests\DestinationRequest;
+
 class DestinationController extends Controller
 {
     /**
@@ -52,5 +53,22 @@ class DestinationController extends Controller
     {
         Destination::destroy($id);
         return response()->json(['message '=>'Dsetination supprimée'] , 200);
+    }
+    public function rechercheDestinationParVille(DestinationRequest $request)
+    {
+        $ville = $request->query('ville');
+                $category = $request->query('category');
+
+
+        $destinations = Destination::when($ville, function ($query) use ($ville) {
+            return $query->where('ville', 'LIKE', '%' . $ville . '%');
+        })
+->when($category, function ($query) use ($category){
+                return $query->where('caterory', 'LIKE', '%' . $category . '%');
+
+})
+        ->get();
+
+        return response()->json($destinations, 200);
     }
 }

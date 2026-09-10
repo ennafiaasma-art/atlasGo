@@ -11,7 +11,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
-// 2. Routes publiques للـ Consultation
+// 2. Routes publiques Consultation
 Route::get('destinations', [DestinationController::class, 'index']);
 Route::get('categories', [CategorieController::class, 'index']);
 Route::get('activites', [ActiviteController::class, 'index']);
@@ -56,3 +56,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
     });
 });
+
+Route::get('/destination/recherch',[DestinationController::class , 'rechercheDestinationParVille']);
