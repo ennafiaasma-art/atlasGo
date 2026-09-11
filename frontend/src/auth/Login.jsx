@@ -55,19 +55,19 @@ const Login = () => {
 
           const role = data.user?.role;
           if (role === 'admin') {
-            navigate('/admin/dashboard', { replace: true });
+            navigate('/admin-dashboard', { replace: true });
           } else {
             navigate('/user-dashboard', { replace: true });
           }
         } else {
-          setError("Token غير موجود في الاستجابة.");
+          setError("Token not found");
         }
       } else {
-        setError(data.message || 'Email أو كلمة المرور غير صحيحة.');
+        setError(data.message || 'Email or password incorrect');
       }
     } catch (err) {
       console.error('Erreur de connexion:', err);
-      setError('تعذر الاتصال بالسيرفر. تأكد من تشغيل Laravel.');
+      setError('error en server laravel.');
     } finally {
       setLoading(false);
     }

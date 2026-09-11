@@ -5,6 +5,7 @@ import Login from './auth/Login';
 import Register from './auth/Register';
 import UserDashboard from './components/UserDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './components/AdminDashboard'; 
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/user-dashboard" element={<UserDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Route>
       </Routes>
     </Router>
