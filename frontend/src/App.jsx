@@ -1,11 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Login from './auth/Login';
 import Register from './auth/Register';
 import UserDashboard from './components/user/UserDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './components/admin/AdminDashboard'; 
+import ProtectedRoute from './components/ProtectedRoute'; 
 
 function App() {
   return (
@@ -15,10 +15,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedRoute allowedRoles={['user']} />}>
           <Route path="/user-dashboard" element={<UserDashboard />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
