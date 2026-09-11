@@ -6,6 +6,7 @@ import Register from './auth/Register';
 import UserDashboard from './components/user/UserDashboard';
 import AdminDashboard from './components/admin/AdminDashboard'; 
 import ProtectedRoute from './components/ProtectedRoute'; 
+import DestinationsAdmin from './components/admin/DestinationsAdmin';
 
 function App() {
   return (
@@ -14,13 +15,16 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+ {/* user */}
         <Route element={<ProtectedRoute allowedRoles={['user']} />}>
           <Route path="/user-dashboard" element={<UserDashboard />} />
         </Route>
 
+
+{/* admin */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/destinations" element={<DestinationsAdmin />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

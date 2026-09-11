@@ -26,7 +26,8 @@ class DestinationRequest extends FormRequest
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'ville' => 'required|string|max:255',
-            'image' => 'nullable|string',
+            'province' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }
 }

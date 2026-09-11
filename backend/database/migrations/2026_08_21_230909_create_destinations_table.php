@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('destinations', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
-        $table->text('description')->nullable();
-        $table->string('ville');
-        $table->string('image')->nullable();
+            $table->text('description')->nullable();
+            $table->string('ville');
+            $table->string('province'); // <-- تم إضافة Column عادية هنا
+            $table->string('image')->nullable();
             $table->timestamps();
         });
     }

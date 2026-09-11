@@ -10,6 +10,7 @@ protected $fillable = [
      'nom',
      'description',
      'ville',
+     'province',
      'image'];
 public function activites()
     {
