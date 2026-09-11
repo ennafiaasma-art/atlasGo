@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Login from './auth/Login';
 import Register from './auth/Register';
-import UserDashboard from './components/UserDashboard';
+import UserDashboard from './components/user/UserDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminDashboard from './components/AdminDashboard'; 
+import AdminDashboard from './components/admin/AdminDashboard'; 
 
 function App() {
   return (
