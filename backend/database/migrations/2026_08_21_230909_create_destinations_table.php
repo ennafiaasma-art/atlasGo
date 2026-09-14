@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('nom');
             $table->text('description')->nullable();
             $table->string('ville');
-            $table->string('province'); // <-- تم إضافة Column عادية هنا
+            $table->string('province'); 
             $table->string('image')->nullable();
+            $table->foreignId('destination_id')->nullable()->constrained('destinations')->onDelete('cascade');
             $table->timestamps();
         });
     }

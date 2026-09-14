@@ -1,138 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, NavLink, Outlet } from 'react-router-dom';
-import { 
-  Bell, LogOut, LayoutDashboard, Compass, 
-  FolderTree, Activity, Hotel, Calendar, Users 
+import React, { useState } from 'react';
+import {
+  Compass,
+  Building2,
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut
 } from 'lucide-react';
 
-const AdminDashboard = () => {
-  const [admin, setAdmin] = useState(null);
-  const navigate = useNavigate();
+// Importation directe des composants depuis leurs propres fichiers
+import DestinationsSection from './DestinationsAdmin.jsx';
+import AccommodationsSection from './Aubergemt.jsx'; // ou le nom exact de ton fichier (ex: ./accommodation)
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setAdmin(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Erreur de lecture du user", e);
-      }
-    }
-  }, []);
+export default function AdminDashboard() {
+  const [activeSection, setActiveSection] = useState('accommodations');
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+  const sectionTitles = {
+    dashboard: 'Tableau de bord',
+    destinations: 'Destinations',
+    accommodations: 'Hébergements',
+    users: 'Utilisateurs',
+    settings: 'Paramètres'
   };
 
-  // Dynamic style for NavLink
-  const navLinkClass = ({ isActive }) =>
-    `w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-xs font-medium ${
-      isActive 
-        ? 'bg-[#0E4D3A] text-white font-bold shadow-sm' 
-        : 'hover:bg-[#0A3A2C] hover:text-white text-slate-300'
-    }`;
+  const menuItems = [
+    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+    { id: 'destinations', label: 'Destinations', icon: Compass },
+    { id: 'accommodations', label: 'Hébergements', icon: Building2 },
+    { id: 'users', label: 'Utilisateurs', icon: Users },
+    { id: 'settings', label: 'Paramètres', icon: Settings }
+  ];
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans text-slate-800">
-      
-      {/* 1. SIDEBAR FIXED */}
-      <aside className="w-64 bg-[#062C21] text-slate-300 flex flex-col justify-between p-4 sticky top-0 h-screen shrink-0 border-r border-emerald-950">
-        <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 px-3 py-3 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-              🌲
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 border-r border-slate-800 flex-shrink-0">
+        <div className="space-y-8">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-800 flex items-center justify-center text-white font-black text-lg">
+              A
             </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-extrabold text-lg text-white tracking-tight">Béni Mellal</span>
-              <span className="text-xs text-emerald-400 font-semibold">Khénifra</span>
+            <div>
+              <h2 className="font-bold text-white text-base">AtlasGo</h2>
+              <p className="text-[10px] text-slate-400">Panneau d'administration</p>
             </div>
           </div>
 
-          {/* Navigation Menu */}
           <nav className="space-y-1">
-            <NavLink to="/admin/dashboard" end className={navLinkClass}>
-              <LayoutDashboard className="w-4 h-4 text-emerald-400" />
-              Tableau de bord
-            </NavLink>
-
-            <NavLink to="/admin/destinations" className={navLinkClass}>
-              <Compass className="w-4 h-4 text-emerald-400" />
-              Destinations
-            </NavLink>
-
-            <NavLink to="/admin/categories" className={navLinkClass}>
-              <FolderTree className="w-4 h-4 text-emerald-400" />
-              Catégories
-            </NavLink>
-
-            <NavLink to="/admin/activities" className={navLinkClass}>
-              <Activity className="w-4 h-4 text-emerald-400" />
-              Activités
-            </NavLink>
-
-            <NavLink to="/admin/accommodations" className={navLinkClass}>
-              <Hotel className="w-4 h-4 text-emerald-400" />
-              Hébergements
-            </NavLink>
-
-            <NavLink to="/admin/reservations" className={navLinkClass}>
-              <Calendar className="w-4 h-4 text-emerald-400" />
-              Réservations
-            </NavLink>
-
-            <NavLink to="/admin/users" className={navLinkClass}>
-              <Users className="w-4 h-4 text-emerald-400" />
-              Utilisateurs
-            </NavLink>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                    isActive
+                      ? 'bg-emerald-800 text-white shadow-sm'
+                      : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
         </div>
 
-        {/* Déconnexion */}
-        <button 
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-red-900/30 hover:text-red-400 transition text-slate-400"
-        >
+        <button className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-red-400 transition">
           <LogOut className="w-4 h-4" />
-          Déconnexion
+          <span>Déconnexion</span>
         </button>
       </aside>
 
-      {/* 2. MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-          <span className="bg-[#062C21] text-white text-xs font-bold px-4 py-1.5 rounded-lg tracking-wide uppercase">
-            DASHBOARD ADMINISTRATEUR
-          </span>
-
-          <div className="flex items-center gap-5">
-            <button className="relative p-2 text-slate-500 hover:text-emerald-800 transition rounded-lg hover:bg-slate-50">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                3
-              </span>
-            </button>
-
-            <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-              <div className="w-8 h-8 rounded-full bg-emerald-800 text-white font-extrabold flex items-center justify-center text-xs shadow-sm">
-                {admin?.name ? admin.name.charAt(0).toUpperCase() : 'A'}
-              </div>
-              <span className="text-xs font-bold text-slate-900">{admin?.name || 'Administrateur'}</span>
-            </div>
+      {/* Dynamic Page Content */}
+      <main className="flex-1 overflow-x-hidden">
+        {activeSection === 'destinations' && <DestinationsSection />}
+        {activeSection === 'accommodations' && <AccommodationsSection />}
+        {!['destinations', 'accommodations'].includes(activeSection) && (
+          <div className="p-8">
+            <h1 className="text-xl font-bold text-slate-900">
+              {sectionTitles[activeSection]}
+            </h1>
+            <p className="text-xs text-slate-400 mt-2">
+              Cette section est en cours de développement.
+            </p>
           </div>
-        </header>
-
-        {/* Dynamic Page Content */}
-        <main className="flex-1">
-          <Outlet />
-        </main>
-      </div>
-
+        )}
+      </main>
     </div>
   );
-};
-
-export default AdminDashboard;
+}

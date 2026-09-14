@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
-   
+
     public function index(Request $request)
     {
         $user=$request->user();
@@ -20,7 +20,7 @@ class ReservationController extends Controller
             $reservation=Reservation::with(['user' , 'auberge'])->get();
         } else{
             $reservation=Reservation::with(['auberge'])
-            ->where('user-id' , $user->id)->get();
+            ->where('user_id' , $user->id)->get();
         }
         return response()->json($reservation , 200);
     }
