@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Route;
 //  1. Routes Publiques  pour tout les user non connecte
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 // recherche  et consulter
 
 Route::get('/destinations', [DestinationController::class, 'index']);

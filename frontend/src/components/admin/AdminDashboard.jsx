@@ -10,7 +10,7 @@ import {
 
 // Importation directe des composants depuis leurs propres fichiers
 import DestinationsSection from './DestinationsAdmin.jsx';
-import AccommodationsSection from './Aubergemt.jsx'; // ou le nom exact de ton fichier (ex: ./accommodation)
+import AccommodationsSection from './Aubergement.jsx'; // ou le nom exact de ton fichier (ex: ./accommodation)
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('accommodations');

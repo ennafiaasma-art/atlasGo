@@ -14,7 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-export default function AubergeManagement() {
+export default function Aubergement() {
   const [auberges, setAuberges] = useState([]);
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);

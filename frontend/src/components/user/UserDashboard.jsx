@@ -1,619 +1,398 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {
-  Menu,
-  Bell,
-  Star,
-  MapPin,
-  Calendar,
-  Users,
-  Compass,
-  Bed,
-  Activity,
-  Heart,
-  User,
-  Settings,
-  LogOut,
-  ChevronRight,
-  Search,
-  X
+import { 
+  LayoutDashboard, MapPin, Compass, Bed, Calendar, Heart, 
+  User, Settings, LogOut, Bell, ChevronDown, Star, ArrowRight, CheckCircle2, Clock 
 } from 'lucide-react';
+import VoirDestinations from './VoirDestinations';
+
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export default function UserDashboard() {
-  const [user, setUser] = useState(null);
-  const [destinations, setDestinations] = useState([]);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [userData, setUserData] = useState(null);
+  const [stats, setStats] = useState({ destinations: 0, auberges: 0, reservations: 0, favoris: 0 });
+  const [destinationsPopulaires, setDestinationsPopulaires] = useState([]);
+  const [reservationsProchaines, setReservationsProchaines] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userLoading, setUserLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
-
-  // Stats affichées dans les 4 cartes du haut
-  const [stats, setStats] = useState({
-    destinations: 0,
-    reservations: 0,
-    activites: 0,
-    favoris: 0
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
-
-  // Réservations à venir affichées dans la colonne de droite
-  const [upcomingReservations, setUpcomingReservations] = useState([]);
-  const [reservationsLoading, setReservationsLoading] = useState(true);
-
-  // État pour gérer la destination sélectionnée pour le Modal
-  const [selectedDestination, setSelectedDestination] = useState(null);
-
-  // Garde en mémoire toutes les destinations chargées au départ,
-  // utilisées comme filet de sécurité si la recherche serveur échoue
-  const [allDestinations, setAllDestinations] = useState([]);
-  // Compteur pour ignorer les réponses obsolètes (anti race condition)
-  const searchRequestId = React.useRef(0);
-  // Timer de debounce pour éviter un appel API à chaque frappe
-  const debounceTimer = React.useRef(null);
-
-  const navigate = useNavigate();
+  const [selectedDestForAuberges, setSelectedDestForAuberges] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    fetchUserData(token);
-    fetchDestinations(token, '');
-    fetchReservationsData(token);
-  }, [navigate]);
-
-  // Récupérer les informations de l'utilisateur connecté depuis Laravel
-  const fetchUserData = async (token) => {
-    setUserLoading(true);
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data);
-    } catch (err) {
-      console.error("Erreur de récupération de l'utilisateur:", err);
-      if (err.response && err.response.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
-      }
-    } finally {
-      setUserLoading(false);
-    }
-  };
-
-  const fetchDestinations = async (token, search) => {
-    setLoading(true);
-    // Chaque appel reçoit un id ; si une réponse plus récente est déjà arrivée,
-    // on ignore ce résultat-ci (évite l'affichage de résultats obsolètes).
-    const requestId = ++searchRequestId.current;
-
-    try {
-      const url = search && search.trim() !== ''
-        ? 'http://127.0.0.1:8000/api/destinations/recherch'
-        : 'http://127.0.0.1:8000/api/destinations';
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      };
-
-      if (search && search.trim() !== '') {
-        config.params = { search: search };
-      }
-
-      const response = await axios.get(url, config);
-      if (requestId !== searchRequestId.current) return; // réponse obsolète
-
-      let list = [];
-      if (response.data && response.data.destinations) {
-        list = response.data.destinations;
-      } else if (Array.isArray(response.data)) {
-        list = response.data;
-      }
-
-      setDestinations(list);
-      // On garde la liste complète (recherche vide) comme filet de sécurité
-      if (!search || search.trim() === '') {
-        setAllDestinations(list);
-        setStats((prev) => ({ ...prev, destinations: list.length }));
-      }
-      setError(null);
-    } catch (err) {
-      if (requestId !== searchRequestId.current) return;
-      console.error('Erreur de connexion API (recherche):', err.response?.status, err.response?.data || err.message);
-
-      // Filet de sécurité : si l'endpoint de recherche échoue (404/500/route
-      // inexistante), on filtre localement parmi les destinations déjà chargées
-      // pour que la barre de recherche reste utilisable.
-      if (search && search.trim() !== '' && allDestinations.length > 0) {
-        const term = search.trim().toLowerCase();
-        const filtered = allDestinations.filter((d) =>
-          (d.nom_destination || d.nom || '').toLowerCase().includes(term) ||
-          (d.ville || '').toLowerCase().includes(term) ||
-          (d.province || '').toLowerCase().includes(term)
-        );
-        setDestinations(filtered);
-        setError(null);
-      } else {
-        setError('Impossible de charger les données du serveur.');
-      }
-    } finally {
-      if (requestId === searchRequestId.current) setLoading(false);
-    }
-  };
-
-  // Statistiques + réservations à venir, calculées à partir de /api/reservations
-  // (il n'existe pas de route dédiée /dashboard/stats ou /reservations/upcoming
-  // dans ton backend, donc on dérive tout depuis la liste complète des réservations)
-  const fetchReservationsData = async (token) => {
-    setStatsLoading(true);
-    setReservationsLoading(true);
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/reservations', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const raw = response.data.reservations || response.data.data || response.data || [];
-      const reservations = Array.isArray(raw) ? raw : [];
-
-      // Log une fois pour vérifier la vraie forme des champs et ajuster si besoin
-      if (reservations.length > 0) {
-        console.log('Exemple de réservation reçue de /api/reservations:', reservations[0]);
-      }
-
-      setStats((prev) => ({ ...prev, reservations: reservations.length }));
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const upcoming = reservations
-        .map((r) => {
-          const dateStr = r.date_debut || r.date_reservation || r.date || r.check_in;
-          return { ...r, __date: dateStr ? new Date(dateStr) : null };
-        })
-        .filter((r) => r.__date && r.__date >= today)
-        .sort((a, b) => a.__date - b.__date)
-        .slice(0, 3)
-        .map((r) => ({
-          id: r.id,
-          nom: r.auberge?.nom || r.destination?.nom_destination || r.nom || 'Réservation',
-          lieu: r.auberge?.ville || r.destination?.ville || r.ville || '',
-          date: r.__date ? r.__date.toLocaleDateString('fr-FR') : '',
-          statut: r.statut,
-          image: r.auberge?.image || r.destination?.image || r.image
-        }));
-
-      setUpcomingReservations(upcoming);
-    } catch (err) {
-      console.error('Erreur de récupération des réservations:', err.response?.status, err.response?.data || err.message);
-      setStats((prev) => ({ ...prev, reservations: 0 }));
-      setUpcomingReservations([]);
-    } finally {
-      setStatsLoading(false);
-      setReservationsLoading(false);
-    }
-  };
-
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    // Debounce : on attend 350ms après la dernière frappe avant d'appeler l'API
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      const token = localStorage.getItem('token');
-      fetchDestinations(token, value);
-    }, 350);
-  };
-
-  // Nettoyage du timer au démontage du composant
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
+    fetchDashboardData();
   }, []);
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem('token');
+  const fetchDashboardData = async () => {
+    setLoading(true);
     try {
-      if (token) {
-        await axios.post('http://127.0.0.1:8000/api/logout', {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [userRes, destRes, aubRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/user`, { headers }).catch(() => ({ data: null })),
+        axios.get(`${API_BASE_URL}/destinations`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE_URL}/auberges`, { headers }).catch(() => ({ data: [] }))
+      ]);
+
+      if (userRes.data) {
+        setUserData(userRes.data);
       }
+
+      const destinationsList = destRes.data?.destinations || (Array.isArray(destRes.data) ? destRes.data : []);
+      const aubergesList = aubRes.data?.auberges || aubRes.data?.data || (Array.isArray(aubRes.data) ? aubRes.data : []);
+
+      setDestinationsPopulaires(destinationsList.slice(0, 4)); // Ghi 4 lawlin l-popular
+      setStats({
+        destinations: destinationsList.length,
+        auberges: aubergesList.length,
+        reservations: 2, // Exemple d'API dynamique ou fixée
+        favoris: 15
+      });
+
+      // Exemple de données pour les réservations (t9dri tbaddliha b API dyal l-reservations)
+      setReservationsProchaines([
+        { id: 1, nom: 'Auberge Cascades', lieu: 'Ouzoud', date: '24-26 Juin 2025', personnes: '2 personnes', statut: 'Confirmé', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80' },
+        { id: 2, nom: 'Dar Atlas', lieu: 'Bin El Ouidane', date: '05-07 Juillet 2025', personnes: '2 personnes', statut: 'En attente', image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=80' }
+      ]);
+
     } catch (err) {
-      console.error('Erreur lors de la déconnexion:', err);
+      console.error("Erreur chargement dashboard:", err);
     } finally {
-      localStorage.removeItem('token');
-      navigate('/login');
+      setLoading(false);
     }
   };
 
-  const userName = user?.name || 'Utilisateur';
+  const handleSelectDestination = (dest) => {
+    setSelectedDestForAuberges(dest);
+    setActiveTab('auberges');
+  };
 
-  const statCards = [
-    {
-      key: 'destinations',
-      label: 'Destinations visitées',
-      value: stats.destinations,
-      sub: 'Sites découverts',
-      icon: MapPin,
-      iconBg: 'bg-emerald-100',
-      iconColor: 'text-emerald-700'
-    },
-    {
-      key: 'reservations',
-      label: 'Réservations',
-      value: stats.reservations,
-      sub: 'Réservations effectuées',
-      icon: Calendar,
-      iconBg: 'bg-sky-100',
-      iconColor: 'text-sky-700'
-    },
-    {
-      key: 'activites',
-      label: 'Activités',
-      value: stats.activites,
-      sub: 'Bientôt disponible',
-      icon: Activity,
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-700',
-      available: false
-    },
-    {
-      key: 'favoris',
-      label: 'Favoris',
-      value: stats.favoris,
-      sub: 'Bientôt disponible',
-      icon: Heart,
-      iconBg: 'bg-violet-100',
-      iconColor: 'text-violet-700',
-      available: false
-    }
-  ];
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=800&q=80';
+    return imagePath.startsWith('http') ? imagePath : `http://127.0.0.1:8000/storage/${imagePath}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-slate-50 text-emerald-900 text-xs font-bold">
+        Chargement de votre tableau de bord...
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col justify-between p-4 flex-shrink-0">
-        <div>
-          <div className="flex items-center gap-3 px-2 py-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-emerald-800 flex items-center justify-center text-white font-bold">
-              <Compass className="w-6 h-6" />
+    <div className="min-h-screen bg-[#f8fafc] flex font-sans text-slate-800">
+      
+      {/* 1. SIDEBAR (Gaule) */}
+      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col justify-between hidden lg:flex fixed h-full z-20">
+        <div className="p-6 space-y-8">
+          {/* Logo / Brand */}
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-emerald-900 text-white flex items-center justify-center font-bold">
+              🏔️
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sm text-slate-800 leading-tight">Béni Mellal</span>
-              <span className="font-bold text-sm text-emerald-800 leading-tight">Khénifra</span>
+            <div>
+              <h1 className="text-xs font-bold text-slate-900 leading-tight">Béni Mellal</h1>
+              <h2 className="text-xs font-bold text-[#215234]">Khénifra</h2>
             </div>
           </div>
 
-          <nav className="space-y-1">
-            <a href="#" className="flex items-center gap-3 px-4 py-3 bg-emerald-900 text-white rounded-xl font-medium text-sm shadow-sm">
-              <Compass className="w-4 h-4" />
-              <span>Tableau de bord</span>
-            </a>
+          {/* Navigation Menu */}
+          <nav className="space-y-1.5 text-xs font-semibold">
             <button
-              onClick={() => fetchDestinations(localStorage.getItem('token'), '')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition"
+              onClick={() => setActiveTab('overview')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition ${activeTab === 'overview' ? 'bg-[#215234] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Tableau de bord
+            </button>
+            <button
+              onClick={() => setActiveTab('destinations')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition ${activeTab === 'destinations' ? 'bg-[#215234] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               <MapPin className="w-4 h-4" />
-              <span>Destinations</span>
+              Destinations
             </button>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
-              <Activity className="w-4 h-4" />
-              <span>Activités</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
-              <Bed className="w-4 h-4" />
-              <span>Hébergements</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
+            <button
+              onClick={() => setActiveTab('activites')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition ${activeTab === 'activites' ? 'bg-[#215234] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Compass className="w-4 h-4" />
+              Activités
+            </button>
+          
+            <button
+              onClick={() => setActiveTab('reservations')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition ${activeTab === 'reservations' ? 'bg-[#215234] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
               <Calendar className="w-4 h-4" />
-              <span>Mes réservations</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
+              Mes réservations
+            </button>
+            <button
+              onClick={() => setActiveTab('favoris')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition ${activeTab === 'favoris' ? 'bg-[#215234] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
               <Heart className="w-4 h-4" />
-              <span>Favoris</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
-              <User className="w-4 h-4" />
-              <span>Profil</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl font-medium text-sm transition">
-              <Settings className="w-4 h-4" />
-              <span>Paramètres</span>
-            </a>
+              Favoris
+            </button>
           </nav>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium text-sm transition w-full"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Déconnexion</span>
-        </button>
+        {/* Footer Sidebar */}
+        <div className="p-6 border-t border-slate-50 space-y-1 text-xs font-semibold text-slate-500">
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition">
+            <User className="w-4 h-4" /> Profil
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition">
+            <Settings className="w-4 h-4" /> Paramètres
+          </button>
+          <button 
+            onClick={() => { localStorage.clear(); window.location.reload(); }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition"
+          >
+            <LogOut className="w-4 h-4" /> Déconnexion
+          </button>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto flex flex-col">
-        {/* Topbar */}
-        <header className="bg-white border-b border-slate-100 px-8 py-3 flex items-center justify-between sticky top-0 z-20">
-          <div className="flex items-center gap-4">
-            <Menu className="w-5 h-5 text-slate-400 lg:hidden" />
+      {/* Main Layout Area */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
+        
+        {/* TOPBAR */}
+        <header className="h-20 bg-white border-b border-slate-100 px-8 flex items-center justify-between sticky top-0 z-10">
+          <div className="text-sm font-bold text-slate-700">
+            {/* Burger mobile ila bghiti */}
           </div>
 
+          {/* Titre central f topbar */}
+          <div className="bg-[#215234] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-sm tracking-wider uppercase">
+            DASHBOARD UTILISATEUR
+          </div>
+
+          {/* User & Notifications */}
           <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-400 hover:text-slate-600 relative rounded-full hover:bg-slate-50">
-              <Bell className="w-5 h-5" />
+            <button className="relative p-2 rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 transition">
+              <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-
-            <div className="flex items-center gap-3 pl-2 border-l border-slate-100">
-              <div className="w-8 h-8 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-xs uppercase">
-                {userLoading ? '...' : userName.charAt(0)}
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
+              <div className="w-9 h-9 rounded-full bg-emerald-100 text-[#215234] flex items-center justify-center font-bold text-xs">
+                {userData?.name?.charAt(0) || 'Y'}
               </div>
-              <span className="text-sm font-semibold text-slate-700">
-                {userLoading ? 'Chargement...' : userName}
+              <span className="text-xs font-bold text-slate-800 hidden sm:inline">
+                {userData?.name || 'Youssef A.'}
               </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <div className="p-8 space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                Bonjour, {userLoading ? '...' : userName} 👋
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Découvrez les merveilles de Béni Mellal-Khénifra
-              </p>
-            </div>
-
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Rechercher une destination..."
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800 transition shadow-sm"
-              />
-            </div>
-          </div>
-
-          {/* Cartes statistiques */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {statCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={card.key}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
-                >
-                  <div className={`w-10 h-10 rounded-xl ${card.iconBg} flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-5 h-5 ${card.iconColor}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-lg font-bold text-slate-900 leading-tight">
-                      {card.available === false ? '—' : (statsLoading ? '—' : card.value)}
-                    </p>
-                    <p className="text-[11px] text-slate-400 truncate">{card.sub}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Grille principale : Destinations + Réservations à venir */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Colonne gauche : destinations populaires */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-bold text-slate-800 text-base">Destinations populaires</h2>
-                <button className="text-xs font-semibold text-emerald-800 flex items-center gap-1 hover:underline">
-                  Voir tout <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+        {/* CONTENT */}
+        <main className="p-8 space-y-8 flex-1">
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              
+              {/* Bienvenue */}
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  Bonjour, {userData?.name || 'Youssef'} 👋
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">Découvrez les merveilles de Béni Mellal-Khénifra</p>
               </div>
 
-              {error && (
-                <p className="text-xs text-red-500 bg-red-50 p-3 rounded-xl">{error}</p>
-              )}
+              {/* 4 STATS CARDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-[#215234] flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-slate-900">{stats.destinations}</h3>
+                    <p className="text-[11px] text-slate-400">Destinations visitées</p>
+                  </div>
+                </div>
 
-              {loading ? (
-                <p className="text-xs text-slate-400">Chargement des destinations...</p>
-              ) : destinations.length === 0 ? (
-                <p className="text-xs text-slate-400">Aucune destination trouvée.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {destinations.map((dest) => (
-                    <div
-                      key={dest.id}
-                      onClick={() => setSelectedDestination(dest)}
-                      className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group"
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <Bed className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-slate-900">{stats.reservations}</h3>
+                    <p className="text-[11px] text-slate-400">Réservations effectuées</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <Compass className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-slate-900">8</h3>
+                    <p className="text-[11px] text-slate-400">Activités réalisées</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-slate-900">{stats.favoris}</h3>
+                    <p className="text-[11px] text-slate-400">Lieux enregistrés</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* GRID LAYOUT (Destinations Populaires à gauche + Mes prochaines réservations à droite) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Destinations Populaires (2 colonnes sur 3) */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-slate-900">Destinations populaires</h3>
+                    <button 
+                      onClick={() => setActiveTab('destinations')}
+                      className="text-xs font-semibold text-[#215234] hover:underline flex items-center gap-1"
                     >
-                      <div className="relative h-36 overflow-hidden bg-slate-100">
-                        <img
-                          src={
-                            dest.image
-                              ? (dest.image.startsWith('http') ? dest.image : `http://127.0.0.1:8000/storage/${dest.image}`)
-                              : 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=800&q=80'
-                          }
-                          alt={dest.nom_destination || 'Destination'}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        />
-                        <button
-                          onClick={(e) => { e.stopPropagation(); }}
-                          className="absolute top-2.5 right-2.5 p-1.5 bg-white/80 backdrop-blur-md rounded-full text-slate-600 hover:text-red-500 transition"
-                        >
-                          <Heart className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      Voir tout →
+                    </button>
+                  </div>
 
-                      <div className="p-3.5 space-y-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-bold text-sm text-slate-800 truncate">
-                            {dest.nom_destination || dest.nom || 'Destination Sans Nom'}
-                          </h3>
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 flex-shrink-0">
-                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                            <span>{dest.note ?? '4.8'}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {destinationsPopulaires.map((dest) => (
+                      <div 
+                        key={dest.id}
+                        onClick={() => handleSelectDestination(dest)}
+                        className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group"
+                      >
+                        <div className="relative h-36 bg-slate-100">
+                          <img 
+                            src={getImageUrl(dest.image)} 
+                            alt={dest.nom_destination || dest.nom} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                          <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-md rounded-full text-slate-600 hover:text-red-500">
+                            <Heart className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="p-3.5 space-y-1">
+                          <h4 className="font-bold text-xs text-slate-900 truncate">
+                            {dest.nom_destination || dest.nom}
+                          </h4>
+                          <div className="flex justify-between items-center text-[11px] text-slate-400">
+                            <span>{dest.ville ? `${dest.ville}, ` : ''}{dest.province || 'Azilal'}</span>
+                            <div className="flex items-center gap-1 font-bold text-slate-700">
+                              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                              <span>{dest.note ?? '4.8'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mes prochaines réservations (1 colonne sur 3) */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-slate-900">Mes prochaines réservations</h3>
+                    <button 
+                      onClick={() => setActiveTab('reservations')}
+                      className="text-xs font-semibold text-[#215234] hover:underline"
+                    >
+                      Voir tout →
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {reservationsProchaines.map((res) => (
+                      <div key={res.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                        <div className="flex items-center gap-3">
+                          <img src={res.image} alt={res.nom} className="w-14 h-14 rounded-xl object-cover" />
+                          <div className="space-y-0.5">
+                            <h4 className="font-bold text-xs text-slate-900">{res.nom}</h4>
+                            <p className="text-[11px] text-slate-400">{res.lieu}</p>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500 pt-1">
+                              <Calendar className="w-3 h-3 text-[#215234]" />
+                              <span>{res.date}</span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 text-xs text-slate-500">
-                          <MapPin className="w-3 h-3 text-emerald-700" />
-                          <span>{dest.ville ? `${dest.ville}, ` : ''}{dest.province || 'Azilal'}</span>
+                        <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">{res.personnes}</span>
+                          <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 ${
+                            res.statut === 'Confirmé' 
+                              ? 'bg-emerald-50 text-emerald-700' 
+                              : 'bg-amber-50 text-amber-700'
+                          }`}>
+                            {res.statut === 'Confirmé' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {res.statut}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              )}
 
-              {/* Bannière d'invitation à l'aventure */}
-              <div className="relative rounded-2xl overflow-hidden mt-2 min-h-[140px] flex items-center bg-emerald-900">
-                <img
-                  src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80"
-                  alt="Aventure"
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                />
-                <div className="relative z-10 p-6">
-                  <h3 className="text-white font-bold text-lg">Partez à l'aventure !</h3>
-                  <p className="text-white/80 text-xs mt-1 mb-4 max-w-xs">
-                    Découvrez des paysages exceptionnels et des activités uniques au cœur de la région.
+              </div>
+
+              {/* BANNER "Partez à l'aventure !" */}
+              <div className="relative bg-gradient-to-r from-[#1c472c] to-[#2b6640] rounded-3xl p-8 text-white overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-6 shadow-md">
+                <div className="space-y-2 z-10">
+                  <span className="bg-white/20 text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-full">AtlasGo Experience</span>
+                  <h3 className="text-xl font-extrabold">Partez à l'aventure !</h3>
+                  <p className="text-xs text-emerald-100 max-w-md leading-relaxed">
+                    Explorez des paysages exceptionnels, des activités uniques et vivez des expériences inoubliables dans la région.
                   </p>
-                  <button className="bg-white text-emerald-900 text-xs font-semibold px-4 py-2 rounded-lg hover:bg-slate-100 transition">
-                    Explorer maintenant
+                  <button 
+                    onClick={() => setActiveTab('destinations')}
+                    className="px-5 py-2.5 bg-white text-[#215234] rounded-xl text-xs font-bold hover:bg-emerald-50 transition shadow-sm inline-flex items-center gap-2 mt-2"
+                  >
+                    Explorer maintenant <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-            </div>
-
-            {/* Colonne droite : prochaines réservations */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-bold text-slate-800 text-base">Mes prochaines réservations</h2>
-                <button className="text-xs font-semibold text-emerald-800 flex items-center gap-1 hover:underline">
-                  Voir tout <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {reservationsLoading ? (
-                  <p className="text-xs text-slate-400">Chargement...</p>
-                ) : upcomingReservations.length === 0 ? (
-                  <p className="text-xs text-slate-400">Aucune réservation à venir.</p>
-                ) : (
-                  upcomingReservations.map((res) => (
-                    <div
-                      key={res.id}
-                      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex gap-3"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
-                        <img
-                          src={
-                            res.image
-                              ? (res.image.startsWith('http') ? res.image : `http://127.0.0.1:8000/storage/${res.image}`)
-                              : 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80'
-                          }
-                          alt={res.nom || 'Réservation'}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-xs text-slate-800 truncate">{res.nom}</h4>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{res.lieu}</p>
-                        <div className="flex items-center justify-between mt-1.5">
-                          <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {res.date}
-                          </span>
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
-                              res.statut === 'confirmee'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}
-                          >
-                            {res.statut === 'confirmee' ? 'Confirmée' : 'En attente'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Modal de Détails */}
-      {selectedDestination && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="relative h-56 bg-slate-100">
-              <img
-                src={
-                  selectedDestination.image
-                    ? (selectedDestination.image.startsWith('http') ? selectedDestination.image : `http://127.0.0.1:8000/storage/${selectedDestination.image}`)
-                    : 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=800&q=80'
-                }
-                alt={selectedDestination.nom_destination}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setSelectedDestination(null)}
-                className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {selectedDestination.nom_destination || selectedDestination.nom}
-                  </h2>
-                  <p className="text-xs text-emerald-800 font-semibold flex items-center gap-1 mt-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {selectedDestination.ville ? `${selectedDestination.ville}, ` : ''}{selectedDestination.province}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-lg text-amber-700 text-xs font-bold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>{selectedDestination.note ?? '4.8'}</span>
+                <div className="absolute right-0 bottom-0 opacity-20 sm:opacity-40 pointer-events-none">
+                  {/* Decorative illustration or icon placeholder */}
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {selectedDestination.description || 'Aucune description disponible pour cette destination.'}
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => setSelectedDestination(null)}
-                  className="w-full py-3 bg-emerald-900 hover:bg-emerald-950 text-white font-semibold text-xs rounded-xl transition"
-                >
-                  Fermer
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+
+          {activeTab === 'destinations' && (
+            <VoirDestinations onSelectDestinationForAuberges={handleSelectDestination} />
+          )}
+
+          {activeTab === 'auberges' && (
+            <VoirAuberges 
+              selectedDestination={selectedDestForAuberges} 
+              onResetFilter={() => setSelectedDestForAuberges(null)} 
+            />
+          )}
+
+          {activeTab === 'reservations' && (
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-slate-900">Mes réservations</h3>
+              <p className="text-xs text-slate-500">Consultez l'historique et l'état de vos réservations d'auberges.</p>
+              {/* Zid code dyal reservations hna ila bghiti */}
+            </div>
+          )}
+
+          {activeTab === 'favoris' && (
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-slate-900">Mes favoris</h3>
+              <p className="text-xs text-slate-500">Retrouvez ici tous les sites et auberges que vous avez enregistrés.</p>
+            </div>
+          )}
+
+          {activeTab === 'activites' && (
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-slate-900">Activités touristiques</h3>
+              <p className="text-xs text-slate-500">Découvrez les randonnées et activités proposées dans la région.</p>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
