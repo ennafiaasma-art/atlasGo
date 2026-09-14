@@ -8,12 +8,9 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // 1. Admin Account
+        // Admin Account
         User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
             [
@@ -24,7 +21,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // 2. Test User Account
+        // Test User Account
         User::firstOrCreate(
             ['email' => 'user@gmail.com'],
             [
@@ -34,5 +31,6 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
     }
 }

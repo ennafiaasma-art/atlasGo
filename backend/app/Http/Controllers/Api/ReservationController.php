@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index(Request $request)
     {
         $user=$request->user();
@@ -27,9 +25,7 @@ class ReservationController extends Controller
         return response()->json($reservation , 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(ReservationRequest $request)
     {
 
@@ -44,9 +40,7 @@ class ReservationController extends Controller
         return response()->json($reservation->load('auberge'),201);
     }
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show(Request $request, $id)
     {
         $user=$request->user();
@@ -57,9 +51,7 @@ class ReservationController extends Controller
         return response()->json($rservation, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(ReservationRequest $request,  $id)
     {
         $user=$request->user();
@@ -107,9 +99,7 @@ class ReservationController extends Controller
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
   public function destroy(Request $request, $id)
     {
         $user = $request->user();

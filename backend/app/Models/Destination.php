@@ -20,6 +20,10 @@ public function activites()
     {
         return $this->hasMany(Auberge::class);
     }
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
 
 //
 }

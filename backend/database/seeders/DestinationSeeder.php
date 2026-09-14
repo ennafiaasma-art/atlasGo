@@ -14,21 +14,15 @@ class DestinationSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('destinations')->insert([
+      Destination::create([
+    'nom' => 'lksiba',
+    'description' => 'nature',
+    'ville' => 'beni mellal',
+    'province' => 'Béni Mellal', 
+    'image' => 'image kasba',
+]);
 
-        'nom'=>'lksiba',
-     'description'=>'nature',
-     'ville'=>'beni mella',
-     'image'=>'image kasba'
-        ]);
 
 
-        Destination ::create([
-
-        'nom'=>'lwdaya',
-     'description'=>'toristique',
-     'ville'=>'marrakech',
-     'image'=>'image lawdaya'
-        ]);
     }
     }
