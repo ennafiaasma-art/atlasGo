@@ -23,10 +23,9 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'auberge_id'  => 'required|exists:auberges,id',
-            'date_debut'  => 'required|date|after_or_equal:today',
+            'chambre_id' => 'required|exists:chambres,id',            'date_debut'  => 'required|date|after_or_equal:today',
             'date_fin'    => 'required|date|after:date_debut',
-            'nb_personne' => 'required|integer|min:1',
+            'nb_personne' => 'nullable|integer|min:1',
         ];
     }
 }

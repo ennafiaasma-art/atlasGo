@@ -16,7 +16,7 @@ export default function VoirDestinations() {
 
   const [selectedAubergeForDetails, setSelectedAubergeForDetails] = useState(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [reservationData, setReservationData] = useState({ date_arrivee: '', date_depart: '', nombre_personnes: 1 });
+  const [reservationData, setReservationData] = useState({ date_debut: '', date_fin: '', nb_personnes: 1 });
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
@@ -98,11 +98,26 @@ export default function VoirDestinations() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/reservations`, {
-        auberge_id: selectedAubergeForDetails.id,
-        ...reservationData
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id;
+    if (!chambreId) {
+        alert("Erreur: Aucune chambre n'est associée à cette auberge pour le moment.");
+        return;
+      }
+      const payload = {
+        chambre_id: chambreId,
+        date_debut: reservationData.date_debut,
+        date_fin: reservationData.date_fin,
+        nb_personne: Number(reservationData.nb_personne || 1),
+        statut: 'en attente'
+      };
+      
+
+     await axios.post(`${API_BASE_URL}/reservations`, payload, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
 
       setSuccessMessage('Réservation effectuée avec succès !');
@@ -111,8 +126,11 @@ export default function VoirDestinations() {
         setSuccessMessage('');
       }, 2000);
     } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la réservation.');
+      console.error("Erreur complète:", err.response?.data);
+      
+      // Récupérer le message précis de Laravel (ex: validation error)
+    const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || 'Erreur lors de la réservation.';
+      alert(`Erreur: ${errorMsg}`);
     }
   };
 
@@ -227,22 +245,22 @@ export default function VoirDestinations() {
               ) : (
                 <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Date d'arrivée</label>
+                    <label className="block font-bold text-slate-700 mb-1">Date de début</label>
                     <input 
                       type="date" 
                       required
                       value={reservationData.date_arrivee}
-                      onChange={(e) => setReservationData({ ...reservationData, date_arrivee: e.target.value })}
+                      onChange={(e) => setReservationData({ ...reservationData,date_debut: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Date de départ</label>
+                    <label className="block font-bold text-slate-700 mb-1">Date de fin</label>
                     <input 
                       type="date" 
                       required
                       value={reservationData.date_depart}
-                      onChange={(e) => setReservationData({ ...reservationData, date_depart: e.target.value })}
+                      onChange={(e) => setReservationData({ ...reservationData, date_fin: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
                   </div>
@@ -253,7 +271,7 @@ export default function VoirDestinations() {
                       min="1" 
                       required
                       value={reservationData.nombre_personnes}
-                      onChange={(e) => setReservationData({ ...reservationData, nombre_personnes: e.target.value })}
+                      onChange={(e) => setReservationData({ ...reservationData, nb_personnes: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
                   </div>

@@ -11,6 +11,9 @@ class Auberge extends Model
         'nom',
         'adresse',
         'telephone',
+        'prix',
+        'description',
+        'ville',
         'image',
         'destination_id'];
         public function destination()

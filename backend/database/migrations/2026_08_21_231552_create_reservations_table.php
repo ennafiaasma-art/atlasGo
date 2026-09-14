@@ -20,6 +20,7 @@ return new class extends Migration
         $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
         $table->foreignId('activite_id')->nullable()->constrained('activites')->onDelete('cascade');
         $table->foreignId('chambre_id')->nullable()->constrained('chambres')->onDelete('cascade');
+        $table->foreignId('auberge_id')->nullable()->constrained('auberges')->onDelete('cascade');
             $table->timestamps();
         });
     }

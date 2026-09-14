@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nom');
         $table->string('adresse');
         $table->string('telephone')->nullable();
+        $table->decimal('prix', 8, 2)->nullable();
         $table->string('image')->nullable();
         $table->foreignId('destination_id')->constrained('destinations')->onDelete('cascade');
             $table->timestamps();

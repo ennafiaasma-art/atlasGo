@@ -29,16 +29,17 @@ class ReservationController extends Controller
     public function store(ReservationRequest $request)
     {
 
-        $reservation = Reservation::create([
-            'user_id'    => $request->user()->id,
-            'auberge_id' => $request->auberge_id,
-            'date_debut' => $request->date_debut,
-            'date_fin'   => $request->date_fin,
-            'status'     => ReservationStatus::PENDING,
+     Reservation::create([
+        'user_id' => auth()->id(),
+        'chambre_id' => 'required|exists:chambres,id',
+        'date_debut' => $request->date_debut,
+        'date_fin' => $request->date_fin,
+        'nb_personne' => $request->nb_personne,
+        'statut' => 'en attente',
+    ]);
 
-        ]);
-        return response()->json($reservation->load('auberge'),201);
-    }
+    return response()->json(['message' => 'Réservation réussie !'], 201);
+}
 
 
     public function show(Request $request, $id)

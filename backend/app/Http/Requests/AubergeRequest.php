@@ -25,7 +25,10 @@ class AubergeRequest extends FormRequest
         return [
            'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
-            'telephone' => 'nullable|string',
+            'ville' => 'nullable|string|max:255',
+            'prix' => 'nullable|numeric',
+            'description' => 'nullable|string',
+            'telephone' => 'nullable|string|max:50',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'destination_id' => 'required|exists:destinations,id',
         ];
