@@ -2,46 +2,42 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use  App\Http\Controllers\Controller;
+use App\Models\Chambre;
 use Illuminate\Http\Request;
 
 class ChambreController extends Controller
 {
-    
-    public function index()
+    public function index($aubergeId)
     {
-        //
+        $chambres = Chambre::where('auberge_id', $aubergeId)->with('caracteristique')->get();
+        return response()->json($chambres);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'numero' => 'required|string|max:50',
+            'type' => 'required|string|max:100',
+            'prix' => 'required|numeric|min:0',
+            'auberge_id' => 'required|exists:auberges,id',
+            'caracteristique_id' => 'nullable|exists:caracteristiques,id',
+        ]);
+
+        $chambre = Chambre::create($validated);
+
+        return response()->json([
+            'message' => 'Chambre créée avec succès',
+            'chambre' => $chambre
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy($id)
     {
-        //
-    }
+        $chambre = Chambre::findOrFail($id);
+        $chambre->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(['message' => 'Chambre supprimée avec succès']);
     }
 }
