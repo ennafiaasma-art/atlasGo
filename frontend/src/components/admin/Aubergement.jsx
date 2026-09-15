@@ -11,7 +11,9 @@ import {
   Building2,
   Search,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  BedDouble, // Icone pour les chambres
+  Tag        // Icone pour le prix
 } from 'lucide-react';
 
 export default function Aubergement() {
@@ -21,17 +23,20 @@ export default function Aubergement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingAuberge, setEditingAuberge] = useState(null);
+  const [modalError, setModalError] = useState(null);
 
   // Success / Error notification states
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  // Form State
+  // Form State (Ajout de nombre_chambres et prix)
   const [formData, setFormData] = useState({
     nom: '',
     adresse: '',
     telephone: '',
     destination_id: '',
+    nombre_chambres: '',
+    prix: '',
     image: null
   });
 
@@ -93,6 +98,8 @@ export default function Aubergement() {
         adresse: auberge.adresse || '',
         telephone: auberge.telephone || '',
         destination_id: auberge.destination_id || '',
+        nombre_chambres: auberge.nombre_chambres || '',
+        prix: auberge.prix || '',
         image: null
       });
     } else {
@@ -102,6 +109,8 @@ export default function Aubergement() {
         adresse: '',
         telephone: '',
         destination_id: '',
+        nombre_chambres: '',
+        prix: '',
         image: null
       });
     }
@@ -115,13 +124,15 @@ export default function Aubergement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+   setModalError(null);
 
     const data = new FormData();
     data.append('nom', formData.nom);
     data.append('adresse', formData.adresse);
     if (formData.telephone) data.append('telephone', formData.telephone);
     data.append('destination_id', formData.destination_id);
+    if (formData.nombre_chambres) data.append('nombre_chambres', formData.nombre_chambres);
+    if (formData.prix) data.append('prix', formData.prix);
     
     if (formData.image) {
       data.append('image', formData.image);
@@ -131,7 +142,7 @@ export default function Aubergement() {
       if (editingAuberge) {
         // Mode Modification (Utilisation de POST avec _method=PUT pour la gestion des fichiers)
         data.append('_method', 'PUT');
-        await axios.post(`http://127.0.0.1:8000/api/auberges/${editingAuberge.id}`, data, {
+        await axios.put(`http://127.0.0.1:8000/api/auberges/${editingAuberge.id}`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -154,10 +165,17 @@ export default function Aubergement() {
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error("Erreur d'enregistrement:", err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
+      if (err.response && err.response.data  ) {
+        if (err.response.data.errors) {
+        const firstKey = Object.keys(err.response.data.errors)[0];
+        setModalError(err.response.data.errors[firstKey][0]);
+      } else if (err.response.data.message) {
+        setModalError(err.response.data.message);
       } else {
-        setError("Une erreur est survenue lors de l'enregistrement.");
+        setModalError("Une erreur est survenue lors de l'enregistrement.");
+      }
+      } else {
+       setModalError("Impossible de contacter le serveur.");
       }
     }
   };
@@ -193,7 +211,7 @@ export default function Aubergement() {
             Gestion des Auberges
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Gérez la liste des hébergements et leurs destinations associées
+            Gérez la liste des hébergements, leurs chambres et leurs prix
           </p>
         </div>
 
@@ -233,7 +251,7 @@ export default function Aubergement() {
         />
       </div>
 
-      {/* Table / Grid */}
+      {/* Grid of Auberges */}
       {loading ? (
         <p className="text-xs text-slate-400">Chargement des auberges...</p>
       ) : filteredAuberges.length === 0 ? (
@@ -263,15 +281,31 @@ export default function Aubergement() {
 
                 {/* Content */}
                 <div className="p-4 space-y-2">
-                  <h3 className="font-bold text-slate-800 text-base">{aub.nom}</h3>
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-800 text-base">{aub.nom}</h3>
+                    {aub.prix && (
+                      <span className="bg-emerald-50 text-emerald-800 font-bold text-xs px-2.5 py-1 rounded-lg">
+                        {aub.prix} DH / nuit
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-xs text-slate-500 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-emerald-800" />
                     <span>{aub.adresse}</span>
                   </p>
+
                   {aub.telephone && (
                     <p className="text-xs text-slate-500 flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       <span>{aub.telephone}</span>
+                    </p>
+                  )}
+
+                  {aub.nombre_chambres && (
+                    <p className="text-xs text-slate-600 flex items-center gap-1.5 pt-1 font-medium">
+                      <BedDouble className="w-3.5 h-3.5 text-emerald-800" />
+                      <span>{aub.nombre_chambres} chambres disponibles</span>
                     </p>
                   )}
                 </div>
@@ -339,34 +373,62 @@ export default function Aubergement() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Téléphone</label>
-                <input
-                  type="text"
-                  name="telephone"
-                  value={formData.telephone}
-                  onChange={handleInputChange}
-                  placeholder="Ex: +212 600 000 000"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Téléphone</label>
+                  <input
+                    type="text"
+                    name="telephone"
+                    value={formData.telephone}
+                    onChange={handleInputChange}
+                    placeholder="Ex: +212 600..."
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Prix par nuit (DH)</label>
+                  <input
+                    type="number"
+                    name="prix"
+                    value={formData.prix}
+                    onChange={handleInputChange}
+                    placeholder="Ex: 350"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Destination associée</label>
-                <select
-                  name="destination_id"
-                  value={formData.destination_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
-                >
-                  <option value="">Sélectionner une destination</option>
-                  {destinations.map((dest) => (
-                    <option key={dest.id} value={dest.id}>
-                      {dest.nom_destination || dest.nom}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Destination associée</label>
+                  <select
+                    name="destination_id"
+                    value={formData.destination_id}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
+                  >
+                    <option value="">Sélectionner</option>
+                    {destinations.map((dest) => (
+                      <option key={dest.id} value={dest.id}>
+                        {dest.nom_destination || dest.nom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre de chambres</label>
+                  <input
+                    type="number"
+                    name="nombre_chambres"
+                    value={formData.nombre_chambres}
+                    onChange={handleInputChange}
+                    placeholder="Ex: 10"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-800"
+                  />
+                </div>
               </div>
 
               <div>

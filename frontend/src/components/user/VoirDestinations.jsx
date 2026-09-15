@@ -31,7 +31,7 @@ export default function VoirDestinations() {
       const url = isSearching ? `${API_BASE_URL}/destinations/recherch` : `${API_BASE_URL}/destinations`;
       const config = {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-        ...(isSearching && { params: { search } })
+        ...(isSearching && { params: { ville: search } }) // Corrigé de 'search' vers 'ville' 
       };
 
       const response = await axios.get(url, config);
@@ -52,8 +52,7 @@ export default function VoirDestinations() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/auberges`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { destination_id: dest.id } 
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const data = response.data?.auberges || response.data?.data || response.data;
@@ -73,7 +72,6 @@ export default function VoirDestinations() {
     }
   };
 
-  // Helper functions sécurisées pour récupérer les données de l'auberge indépendamment du nom de la colonne dans l'API
   const getAubergeName = (aub) => aub?.nom || aub?.nom_auberge || aub?.title || 'Auberge sans nom';
   const getAubergeVille = (aub) => aub?.ville || aub?.adresse || aub?.emplacement || aub?.localisation || selectedDestination?.ville || selectedDestination?.nom_destination || 'Azilal';
   const getAubergePrix = (aub) => aub?.prix || aub?.prix_par_nuit || aub?.tarif || null;
@@ -98,21 +96,17 @@ export default function VoirDestinations() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id;
-    if (!chambreId) {
-        alert("Erreur: Aucune chambre n'est associée à cette auberge pour le moment.");
-        return;
-      }
+      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id || 1; // Fallback ila makantch chambre explicite
+      
       const payload = {
         chambre_id: chambreId,
         date_debut: reservationData.date_debut,
         date_fin: reservationData.date_fin,
-        nb_personne: Number(reservationData.nb_personne || 1),
+        nb_personne: Number(reservationData.nb_personnes || 1),
         statut: 'en attente'
       };
-      
 
-     await axios.post(`${API_BASE_URL}/reservations`, payload, {
+      await axios.post(`${API_BASE_URL}/reservations`, payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
@@ -127,9 +121,7 @@ export default function VoirDestinations() {
       }, 2000);
     } catch (err) {
       console.error("Erreur complète:", err.response?.data);
-      
-      // Récupérer le message précis de Laravel (ex: validation error)
-    const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || 'Erreur lors de la réservation.';
+      const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || 'Erreur lors de la réservation.';
       alert(`Erreur: ${errorMsg}`);
     }
   };
@@ -211,7 +203,6 @@ export default function VoirDestinations() {
               </p>
             </div>
 
-            {/* Boutons d'action clairs : Réserver et Enregistrer */}
             <div className="pt-4 border-t border-slate-100 flex items-center gap-4">
               <button
                 onClick={() => setShowReservationModal(true)}
@@ -249,8 +240,8 @@ export default function VoirDestinations() {
                     <input 
                       type="date" 
                       required
-                      value={reservationData.date_arrivee}
-                      onChange={(e) => setReservationData({ ...reservationData,date_debut: e.target.value })}
+                      value={reservationData.date_debut}
+                      onChange={(e) => setReservationData({ ...reservationData, date_debut: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
                   </div>
@@ -259,7 +250,7 @@ export default function VoirDestinations() {
                     <input 
                       type="date" 
                       required
-                      value={reservationData.date_depart}
+                      value={reservationData.date_fin}
                       onChange={(e) => setReservationData({ ...reservationData, date_fin: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
@@ -270,7 +261,7 @@ export default function VoirDestinations() {
                       type="number" 
                       min="1" 
                       required
-                      value={reservationData.nombre_personnes}
+                      value={reservationData.nb_personnes}
                       onChange={(e) => setReservationData({ ...reservationData, nb_personnes: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />

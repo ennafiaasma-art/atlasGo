@@ -29,8 +29,9 @@ class AubergeRequest extends FormRequest
             'prix' => 'nullable|numeric',
             'description' => 'nullable|string',
             'telephone' => 'nullable|string|max:50',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'destination_id' => 'required|exists:destinations,id',
         ];
     }
 }
+
