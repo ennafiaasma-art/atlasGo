@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use  App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ChambreRequest;
 use App\Models\Chambre;
 use Illuminate\Http\Request;
 
@@ -14,24 +15,15 @@ class ChambreController extends Controller
         return response()->json($chambres);
     }
 
-    public function store(Request $request)
+    public function store(ChambreRequest $request)
     {
-        $validated = $request->validate([
-            'numero' => 'required|string|max:50',
-            'type' => 'required|string|max:100',
-            'prix' => 'required|numeric|min:0',
-            'auberge_id' => 'required|exists:auberges,id',
-            'caracteristique_id' => 'nullable|exists:caracteristiques,id',
-        ]);
-
-        $chambre = Chambre::create($validated);
+        $chambre = Chambre::create($request->validated());
 
         return response()->json([
             'message' => 'Chambre créée avec succès',
             'chambre' => $chambre
         ], 201);
     }
-
 
     public function destroy($id)
     {
