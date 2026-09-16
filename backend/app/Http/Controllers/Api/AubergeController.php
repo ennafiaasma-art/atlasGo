@@ -26,6 +26,7 @@ class AubergeController extends Controller
             $data['image'] = $request->file('image')->store('auberges', 'public');
         }
         $auberge = Auberge::create($data);
+        $auberge->loadCount('chambres');
 
         return response()->json([
             'message' => 'Auberge créée avec succès',
@@ -55,6 +56,7 @@ class AubergeController extends Controller
             $data['image'] = $request->file('image')->store('auberges', 'public');
         }
         $auberge->update($data);
+        $auberge->loadCount('chambres');
 
         return response()->json([
             'message' => 'Auberge mise à jour avec succès',

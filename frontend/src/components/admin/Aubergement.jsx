@@ -149,7 +149,7 @@ export default function Aubergement() {
     setEditingAuberge(null);
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
     data.append('nom', formData.nom);
@@ -158,18 +158,19 @@ export default function Aubergement() {
     data.append('destination_id', formData.destination_id);
     if (formData.nombre_chambres) data.append('nombre_chambres', formData.nombre_chambres);
     if (formData.prix) data.append('prix', formData.prix);
-    if (formData.image) data.append('image', formData.image);
+    if (formData.image instanceof File) {
+      data.append('image', formData.image);
+    }
 
     try {
       if (editingAuberge) {
-        data.append('_method', 'PUT');
         await axios.post(`http://127.0.0.1:8000/api/auberges/${editingAuberge.id}`, data, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         });
         setMessage('Auberge modifiée avec succès!');
       } else {
         await axios.post('http://127.0.0.1:8000/api/auberges', data, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         });
         setMessage('Auberge créée avec succès!');
       }
@@ -177,10 +178,12 @@ export default function Aubergement() {
       closeModal();
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
-      console.error("Erreur d'enregistrement:", err);
-      setError("Une erreur est survenue lors de l'enregistrement de l'auberge.");
+      console.error("Erreur d'enregistrement:", err.response?.data);
+      const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || err.message;
+      setError("Erreur : " + errorMsg);
     }
   };
+ 
 
   const handleDelete = async (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette auberge ?")) return;
@@ -372,11 +375,9 @@ export default function Aubergement() {
                   <p className="text-xs text-slate-600 flex items-center gap-1.5 pt-1 font-medium">
                     <BedDouble className="w-3.5 h-3.5 text-emerald-800" />
                     <span>
-                      {aub.nombre_chambres 
-                        ? `${aub.nombre_chambres} chambres total` 
-                        : aub.chambres_count 
-                        ? `${aub.chambres_count} chambres total` 
-                        : 'Chambres non spécifiées'}
+                      {aub.chambres_count !== undefined && aub.chambres_count !== null
+                        ? `${aub.chambres_count} chambres`
+                        : '0 chambre'}
                     </span>
                   </p>
                 </div>
@@ -628,7 +629,7 @@ export default function Aubergement() {
                         </div>
                         <button
                           onClick={() => handleDeleteChambre(chambre.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 root rounded-lg transition"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
