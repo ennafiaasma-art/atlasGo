@@ -9,15 +9,14 @@ use Illuminate\Support\Facades\Storage;
 
 class AubergeController extends Controller
 {
-    public function index()
+   public function index()
     {
-        $auberges = Auberge::with('destination')->latest()->get();
+        $auberges = Auberge::with('destination')->withCount('chambres')->latest()->get();
 
         return response()->json([
             'auberges' => $auberges
         ], 200);
     }
-
 
     public function store(AubergeRequest $request)
     {

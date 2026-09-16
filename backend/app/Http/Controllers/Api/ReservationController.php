@@ -13,33 +13,32 @@ use Illuminate\Http\Request;
 class ReservationController extends Controller
 {
 
-    public function index(Request $request)
+   public function index(Request $request)
     {
-        $user=$request->user();
-        if($user->role === 'admin'){
-            $reservation=Reservation::with(['user' , 'auberge'])->get();
-        } else{
-            $reservation=Reservation::with(['auberge'])
-            ->where('user_id' , $user->id)->get();
+        $user = $request->user();
+        if ($user->role === 'admin') {
+            $reservation = Reservation::with(['user', 'chambre.auberge'])->get();
+        } else {
+            $reservation = Reservation::with(['chambre.auberge'])
+                ->where('user_id', $user->id)->get();
         }
-        return response()->json($reservation , 200);
+        return response()->json($reservation, 200);
     }
 
 
-    public function store(ReservationRequest $request)
+   public function store(ReservationRequest $request)
     {
+        Reservation::create([
+            'user_id' => auth()->id(),
+            'chambre_id' => $request->chambre_id,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
+            'nb_personne' => $request->nb_personne,
+            'statut' => 'en attente',
+        ]);
 
-     Reservation::create([
-        'user_id' => auth()->id(),
-        'chambre_id' => 'required|exists:chambres,id',
-        'date_debut' => $request->date_debut,
-        'date_fin' => $request->date_fin,
-        'nb_personne' => $request->nb_personne,
-        'statut' => 'en attente',
-    ]);
-
-    return response()->json(['message' => 'Réservation réussie !'], 201);
-}
+        return response()->json(['message' => 'Réservation réussie !'], 201);
+    }
 
 
     public function show(Request $request, $id)

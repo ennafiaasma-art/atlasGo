@@ -37,7 +37,7 @@ const DestinationsAdmin = () => {
     return `http://127.0.0.1:8000/storage/${cleanPath}`;
   };
 
-  // Helper Function: Safely extract property values from objects or nested relationships
+  // Helper Function: Safely extract property values
   const getFieldValue = (field) => {
     if (!field) return '';
     if (typeof field === 'object') return field.nom || field.name || field.titre || '';
@@ -111,11 +111,10 @@ const DestinationsAdmin = () => {
     }
   };
 
-  // 2. AJOUTER & MODIFIER (Submit using FormData)
+  // 2. AJOUTER & MODIFIER
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEdit = !!currentDestination;
-    
     const url = isEdit ? `${API_URL}/${currentDestination.id}` : API_URL;
 
     const dataToSend = new FormData();
@@ -218,7 +217,7 @@ const DestinationsAdmin = () => {
   });
 
   return (
-    <div className="p-8 space-y-6 bg-[#F8FAFC] min-h-screen">
+    <div className="p-8 space-y-6 w-full">
       
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -247,7 +246,7 @@ const DestinationsAdmin = () => {
         />
       </div>
 
-      {/* Table List (Consulter) */}
+      {/* Table List */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -420,7 +419,7 @@ const DestinationsAdmin = () => {
                   rows="4"
                   placeholder="Description détaillée..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => setformData({ ...formData, description: e.target.value })}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-emerald-600 transition resize-none"
                 ></textarea>
               </div>

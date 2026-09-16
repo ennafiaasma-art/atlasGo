@@ -5,12 +5,14 @@ import {
   LayoutDashboard,
   Users,
   Settings,
-  LogOut
+  LogOut,
+  Heart,          // 👈 Icon dyal Favoris
+  Activity        // 👈 Icon dyal Activités
 } from 'lucide-react';
 
 // Importation directe des composants depuis leurs propres fichiers
 import DestinationsSection from './DestinationsAdmin.jsx';
-import AccommodationsSection from './Aubergement.jsx'; // ou le nom exact de ton fichier (ex: ./accommodation)
+import AccommodationsSection from './Aubergement.jsx';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('accommodations');
@@ -19,6 +21,8 @@ export default function AdminDashboard() {
     dashboard: 'Tableau de bord',
     destinations: 'Destinations',
     accommodations: 'Hébergements',
+    activites: 'Activités',     // 👈 Zdnaha b nafs l-ism
+    favoris: 'Favoris',         // 👈 Zdnaha b nafs l-ism
     users: 'Utilisateurs',
     settings: 'Paramètres'
   };
@@ -27,6 +31,8 @@ export default function AdminDashboard() {
     { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { id: 'destinations', label: 'Destinations', icon: Compass },
     { id: 'accommodations', label: 'Hébergements', icon: Building2 },
+    { id: 'activites', label: 'Activités', icon: Activity },       // 👈 Zdnaha f l-menu
+    { id: 'favoris', label: 'Favoris', icon: Heart },               // 👈 Zdnaha f l-menu
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'settings', label: 'Paramètres', icon: Settings }
   ];
@@ -78,6 +84,8 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-x-hidden">
         {activeSection === 'destinations' && <DestinationsSection />}
         {activeSection === 'accommodations' && <AccommodationsSection />}
+        
+        {/* L-blassa li ma m-mappiwch m3a composant khas, kat Affichi l-titre dyalo automatiquement b sectionTitles */}
         {!['destinations', 'accommodations'].includes(activeSection) && (
           <div className="p-8">
             <h1 className="text-xl font-bold text-slate-900">
