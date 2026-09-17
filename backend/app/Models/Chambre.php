@@ -16,9 +16,9 @@ class Chambre extends Model
     {
         return $this->belongsTo(Auberge::class);
     }
-    public function caracteristique()
+  public function caracteristiques()
     {
-        return $this->belongsTo(Caracteristique::class);
+        return $this->belongsToMany(Caracteristique::class, 'chambre_caracteristique');
     }
     public function reservations()
     {

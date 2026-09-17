@@ -415,13 +415,13 @@ const DestinationsAdmin = () => {
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Description</label>
-                <textarea 
-                  rows="4"
-                  placeholder="Description détaillée..."
-                  value={formData.description}
-                  onChange={(e) => setformData({ ...formData, description: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-emerald-600 transition resize-none"
-                ></textarea>
+               <textarea 
+  rows="4"
+  placeholder="Description détaillée..."
+  value={formData.description}
+  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-emerald-600 transition resize-none"
+></textarea>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">

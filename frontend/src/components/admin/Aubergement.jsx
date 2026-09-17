@@ -14,10 +14,11 @@ import {
   BedDouble
 } from 'lucide-react';
 
+import GererChambre from "./GererChambre.jsx"; 
+
 export default function Aubergement() {
   const [auberges, setAuberges] = useState([]);
   const [destinations, setDestinations] = useState([]);
-  const [caracteristiques, setCaracteristiques] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -25,17 +26,7 @@ export default function Aubergement() {
   const [showModal, setShowModal] = useState(false);
   const [editingAuberge, setEditingAuberge] = useState(null);
   
-  // Modal Chambres
-  const [showChambreModal, setShowChambreModal] = useState(false);
-  const [selectedAuberge, setSelectedAuberge] = useState(null);
-  const [chambres, setChambres] = useState([]);
-  
-  const [chambreForm, setChambreForm] = useState({
-    numero: '',
-    type: '',
-    prix: '',
-    caracteristique_ids: []
-  });
+  const [selectedAubergeForChambres, setSelectedAubergeForChambres] = useState(null);
 
   // Notifications
   const [message, setMessage] = useState(null);
@@ -57,7 +48,6 @@ export default function Aubergement() {
   useEffect(() => {
     fetchAuberges();
     fetchDestinations();
-    fetchCaracteristiques();
   }, []);
 
   const fetchAuberges = async () => {
@@ -91,17 +81,6 @@ export default function Aubergement() {
       }
     } catch (err) {
       console.error("Erreur lors du chargement des destinations:", err);
-    }
-  };
-
-  const fetchCaracteristiques = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/caracteristiques', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCaracteristiques(response.data);
-    } catch (err) {
-      console.error("Erreur lors du chargement des caractéristiques:", err);
     }
   };
 
@@ -149,7 +128,7 @@ export default function Aubergement() {
     setEditingAuberge(null);
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
     data.append('nom', formData.nom);
@@ -183,7 +162,6 @@ const handleSubmit = async (e) => {
       setError("Erreur : " + errorMsg);
     }
   };
- 
 
   const handleDelete = async (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette auberge ?")) return;
@@ -200,78 +178,23 @@ const handleSubmit = async (e) => {
     }
   };
 
-  const openChambreModal = async (auberge) => {
-    setSelectedAuberge(auberge);
-    setShowChambreModal(true);
-    fetchChambres(auberge.id);
-  };
-
-  const fetchChambres = async (aubergeId) => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/auberges/${aubergeId}/chambres`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setChambres(response.data);
-    } catch (err) {
-      console.error("Erreur chargement chambres", err);
-    }
-  };
-
-  const handleCheckboxChange = (id) => {
-    setChambreForm(prev => {
-      const exists = prev.caracteristique_ids.includes(id);
-      if (exists) {
-        return {
-          ...prev,
-          caracteristique_ids: prev.caracteristique_ids.filter(item => item !== id)
-        };
-      } else {
-        return {
-          ...prev,
-          caracteristique_ids: [...prev.caracteristique_ids, id]
-        };
-      }
-    });
-  };
-
-  const handleChambreSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      await axios.post('http://127.0.0.1:8000/api/chambres', {
-        ...chambreForm,
-        auberge_id: selectedAuberge.id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setChambreForm({ numero: '', type: '', prix: '', caracteristique_ids: [] });
-      fetchChambres(selectedAuberge.id);
-      fetchAuberges(); 
-      setMessage('Chambre ajoutée avec succès!');
-      setTimeout(() => setMessage(null), 3000);
-    } catch (err) {
-      console.error("Erreur détaillée du serveur:", err.response?.data);
-      setError("Erreur : " + (err.response?.data?.error || err.response?.data?.message || err.message));
-    }
-  };
-
-  const handleDeleteChambre = async (chambreId) => {
-    if (!window.confirm("Supprimer cette chambre ?")) return;
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/chambres/${chambreId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchChambres(selectedAuberge.id);
-      fetchAuberges();
-    } catch (err) {
-      console.error("Erreur suppression chambre", err);
-    }
-  };
-
   const filteredAuberges = auberges.filter(aub => 
     aub.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
     aub.adresse.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (selectedAubergeForChambres) {
+    return (
+      <div className="p-8 bg-slate-50 min-h-screen">
+        <GererChambre 
+          selectedAuberge={selectedAubergeForChambres} 
+          token={token} 
+          onBack={() => setSelectedAubergeForChambres(null)} 
+          onChambreUpdated={fetchAuberges} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-6 bg-slate-50 min-h-screen">
@@ -386,7 +309,7 @@ const handleSubmit = async (e) => {
               {/* Action Buttons */}
               <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-slate-50/50">
                 <button
-                  onClick={() => openChambreModal(aub)}
+                  onClick={() => setSelectedAubergeForChambres(aub)}
                   className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg text-xs font-semibold flex items-center gap-1 transition"
                 >
                   <BedDouble className="w-3.5 h-3.5" />
@@ -532,113 +455,6 @@ const handleSubmit = async (e) => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Gestion des Chambres */}
-      {showChambreModal && selectedAuberge && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <BedDouble className="w-5 h-5 text-emerald-800" />
-                Chambres de : {selectedAuberge.nom}
-              </h2>
-              <button onClick={() => setShowChambreModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6 overflow-y-auto flex-1">
-              <form onSubmit={handleChambreSubmit} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Ajouter une nouvelle chambre</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Numéro (ex: 101)"
-                    value={chambreForm.numero}
-                    onChange={(e) => setChambreForm({ ...chambreForm, numero: e.target.value })}
-                    required
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Type (ex: Double / Suite)"
-                    value={chambreForm.type}
-                    onChange={(e) => setChambreForm({ ...chambreForm, type: e.target.value })}
-                    required
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Prix (DH)"
-                    value={chambreForm.prix}
-                    onChange={(e) => setChambreForm({ ...chambreForm, prix: e.target.value })}
-                    required
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-2 col-span-2">
-                  <label className="block text-xs font-semibold text-slate-600">Caractéristiques de la chambre</label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border border-slate-200 rounded-xl bg-white">
-                    {caracteristiques.length === 0 ? (
-                      <p className="text-[11px] text-slate-400 italic col-span-2">Aucune caractéristique disponible.</p>
-                    ) : (
-                      caracteristiques.map(carac => (
-                        <label key={carac.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={chambreForm.caracteristique_ids.includes(carac.id)}
-                            onChange={() => handleCheckboxChange(carac.id)}
-                            className="rounded text-emerald-900 focus:ring-emerald-800"
-                          />
-                          <span>Étage: {carac.etage || 'N/A'} {carac.wifi ? '• WiFi' : ''} {carac.climatisation ? '• Clim' : ''}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-emerald-900 hover:bg-emerald-950 text-white font-semibold text-xs rounded-xl"
-                  >
-                    + Ajouter la chambre
-                  </button>
-                </div>
-              </form>
-
-              <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Liste des chambres actuelles</h3>
-                {chambres.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">Aucune chambre enregistrée pour cette auberge.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {chambres.map((chambre) => (
-                      <div key={chambre.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-xs">
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-bold text-slate-800">
-                            Chambre N° {chambre.numero} - <span className="text-emerald-800">{chambre.type}</span>
-                          </p>
-                          <p className="text-[11px] text-slate-500">
-                            Prix: <span className="font-semibold text-slate-700">{chambre.prix} DH</span>
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteChambre(chambre.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       )}

@@ -25,8 +25,8 @@ class ChambreRequest extends FormRequest
         return [
             'numero' => 'required|string|max:50',
             'type' => 'required|string|max:100',
-            'prix' => 'required|numeric|min:0',
-            'auberge_id' => 'required|exists:auberges,id', 
+            'prix' => 'required|numeric|min:1',
+            'auberge_id' => 'required|exists:auberges,id',
             'caracteristique_id' => 'nullable|exists:caracteristiques,id',
         ];
     }

@@ -10,7 +10,7 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
   
   const [chambreForm, setChambreForm] = useState({
     numero: '',
-    type: '',
+    type: 'Double',
     prix: '',
     caracteristique_ids: []
   });
@@ -68,6 +68,20 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
   const handleChambreSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // التحقق بأن الثمن أكبر قطعا من 0
+    if (Number(chambreForm.prix) <= 0) {
+      setError("Le prix de la chambre doit être supérieur à 0 DH.");
+      return;
+    }
+    const chambreExistante = chambres.some(
+      (ch) => String(ch.numero).trim().toLowerCase() === String(chambreForm.numero).trim().toLowerCase()
+    );
+    if (chambreExistante) {
+      setError(`La chambre N° ${chambreForm.numero} existe déjà dans cet établissement.`);
+      return;
+    }
+
     try {
       await axios.post('http://127.0.0.1:8000/api/chambres', {
         ...chambreForm,
@@ -75,7 +89,7 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setChambreForm({ numero: '', type: '', prix: '', caracteristique_ids: [] });
+      setChambreForm({ numero: '', type: 'Double', prix: '', caracteristique_ids: [] });
       fetchChambres(selectedAuberge.id);
       if (onChambreUpdated) onChambreUpdated();
     } catch (err) {
@@ -146,14 +160,18 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Type de chambre</label>
-              <input
-                type="text"
-                placeholder="Ex: Double / Suite / Single"
+              <select
                 value={chambreForm.type}
                 onChange={(e) => setChambreForm({ ...chambreForm, type: e.target.value })}
                 required
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white transition"
-              />
+              >
+                <option value="Single">Single (Individuelle)</option>
+                <option value="Double">Double</option>
+                <option value="Triple">Triple</option>
+                <option value="Suite">Suite</option>
+                <option value="Dortoir">Dortoir</option>
+              </select>
             </div>
 
             <div>
@@ -164,18 +182,20 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                 value={chambreForm.prix}
                 onChange={(e) => setChambreForm({ ...chambreForm, prix: e.target.value })}
                 required
+                min="1"        
+                step="any"     
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white transition"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-600">Caractéristiques</label>
+              <label className="block text-xs font-semibold text-slate-600">Caractéristiques (Sélectionnez)</label>
               <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 border border-slate-200 rounded-xl bg-slate-50">
                 {caracteristiques.length === 0 ? (
                   <p className="text-[11px] text-slate-400 italic">Aucune caractéristique disponible.</p>
                 ) : (
                   caracteristiques.map(carac => (
-                    <label key={carac.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer bg-white p-2 rounded-lg border border-slate-100">
+                    <label key={carac.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer bg-white p-2 rounded-lg border border-slate-100 hover:bg-emerald-50/50 transition">
                       <input
                         type="checkbox"
                         checked={chambreForm.caracteristique_ids.includes(carac.id)}
@@ -206,29 +226,20 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
           {loading ? (
             <p className="text-xs text-slate-400 py-6 text-center">Chargement des chambres...</p>
           ) : chambres.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-              <BedDouble className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-xs text-slate-400">Aucune chambre enregistrée pour cette auberge.</p>
-            </div>
+            <p className="text-xs text-slate-400 py-6 text-center">Aucune chambre trouvée.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {chambres.map((chambre) => (
-                <div key={chambre.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl shadow-xs">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-800">
-                      Chambre N° <span className="text-emerald-900 text-sm">{chambre.numero}</span>
-                    </p>
-                    <p className="text-xs font-medium text-slate-600">
-                      Type: <span className="text-slate-800">{chambre.type}</span>
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Prix: <span className="font-semibold text-emerald-800">{chambre.prix} DH</span>
-                    </p>
+                <div key={chambre.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-start">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800">Chambre N° {chambre.numero}</h4>
+                    <p className="text-[11px] text-slate-600">Type: {chambre.type}</p>
+                    <p className="text-[11px] font-semibold text-emerald-800">Prix: {chambre.prix} DH</p>
                   </div>
                   <button
                     onClick={() => handleDeleteChambre(chambre.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition"
-                    title="Supprimer la chambre"
+                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                    title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
