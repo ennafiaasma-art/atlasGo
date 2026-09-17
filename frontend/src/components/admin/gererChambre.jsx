@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ArrowLeft, BedDouble, Plus, Trash2, Edit3, X, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, BedDouble, Plus, Trash2, Edit3, X, CheckCircle, AlertCircle, Sparkles, Tag } from 'lucide-react';
 import GererCaracteristique from './GererCaracteristique';
 
 export default function GererChambre({ selectedAuberge, token, onBack, onChambreUpdated }) {
   const [chambres, setChambres] = useState([]);
+  const [caracteristiquesDisponibles, setCaracteristiquesDisponibles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingChambre, setEditingChambre] = useState(null);
@@ -18,11 +19,13 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
     numero: '',
     type: 'Simple',
     prix: '',
-    statut: 'disponible'
+    statut: 'disponible',
+    caracteristique_ids: []
   });
 
   useEffect(() => {
     fetchChambres();
+    fetchCaracteristiques();
   }, [selectedAuberge]);
 
   const fetchChambres = async () => {
@@ -44,9 +47,39 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
     }
   };
 
+  const fetchCaracteristiques = async () => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/api/auberges/${selectedAuberge.id}/caracteristiques`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data) {
+        setCaracteristiquesDisponibles(response.data);
+      }
+    } catch (err) {
+      console.error("Erreur chargement caractéristiques:", err);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (id) => {
+    setFormData(prev => {
+      const exists = prev.caracteristique_ids.includes(id);
+      if (exists) {
+        return {
+          ...prev,
+          caracteristique_ids: prev.caracteristique_ids.filter(item => item !== id)
+        };
+      } else {
+        return {
+          ...prev,
+          caracteristique_ids: [...prev.caracteristique_ids, id]
+        };
+      }
+    });
   };
 
   const openModal = (chambre = null) => {
@@ -56,7 +89,8 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
         numero: chambre.numero || '',
         type: chambre.type || 'Simple',
         prix: chambre.prix || '',
-        statut: chambre.statut || 'disponible'
+        statut: chambre.statut || 'disponible',
+        caracteristique_ids: chambre.caracteristiques ? chambre.caracteristiques.map(c => c.id) : []
       });
     } else {
       setEditingChambre(null);
@@ -64,7 +98,8 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
         numero: '',
         type: 'Simple',
         prix: '',
-        statut: 'disponible'
+        statut: 'disponible',
+        caracteristique_ids: []
       });
     }
     setShowModal(true);
@@ -87,7 +122,6 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
       };
 
       if (editingChambre) {
-        // استخدام POST مع معرف الغرفة كما هو معرف في Laravel Routes
         await axios.post(`http://127.0.0.1:8000/api/chambres/${editingChambre.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -130,7 +164,10 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
       <GererCaracteristique
         selectedAuberge={selectedAuberge}
         token={token}
-        onBack={() => setShowCaracteristiquesView(false)}
+        onBack={() => {
+          setShowCaracteristiquesView(false);
+          fetchCaracteristiques();
+        }}
       />
     );
   }
@@ -138,7 +175,6 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       
-      {/* رسائل التنبيه والنجاح */}
       {message && (
         <div className="flex items-center gap-2 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl shadow-sm">
           <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -212,6 +248,18 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                   </div>
                   <p className="text-xs text-slate-500 mt-2">Type : {chambre.type}</p>
                   <p className="text-xs font-semibold text-emerald-800 mt-1">{chambre.prix} DH / nuit</p>
+
+                  {/* عرض الخصائص هنا */}
+                  {chambre.caracteristiques && chambre.caracteristiques.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-slate-200/40">
+                      {chambre.caracteristiques.map((carac) => (
+                        <span key={carac.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200/60 rounded-md text-[10px] font-medium">
+                          <Tag className="w-3 h-3" />
+                          {carac.nom}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-end gap-1 mt-4 pt-3 border-t border-slate-200/60">
@@ -239,8 +287,8 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
       {/* Modal Ajout / Modification Chambre */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
               <h2 className="text-base font-bold text-slate-800">
                 {editingChambre ? 'Modifier la Chambre' : 'Ajouter une Chambre'}
               </h2>
@@ -249,7 +297,7 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Numéro de la chambre</label>
                 <input
@@ -277,7 +325,6 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                 </select>
               </div>
 
-              {/* حقل السعر (Prix) المعدل */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Prix par nuit (DH)</label>
                 <input
@@ -306,7 +353,29 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                 </select>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+              {/* قسم اختيار الخصائص (Caracteristiques) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-2">Caractéristiques de la chambre</label>
+                {caracteristiquesDisponibles.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">Aucune caractéristique disponible. Vous pouvez en créer depuis le bouton "Gérer Caractéristiques".</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-slate-100 rounded-xl bg-slate-50">
+                    {caracteristiquesDisponibles.map((carac) => (
+                      <label key={carac.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-1 hover:bg-slate-100 rounded-lg">
+                        <input
+                          type="checkbox"
+                          checked={formData.caracteristique_ids.includes(carac.id)}
+                          onChange={() => handleCheckboxChange(carac.id)}
+                          className="rounded border-slate-300 text-emerald-800 focus:ring-emerald-800 w-3.5 h-3.5"
+                        />
+                        <span className="truncate">{carac.nom}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100 shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}
