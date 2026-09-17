@@ -217,26 +217,26 @@ const DestinationsAdmin = () => {
   });
 
   return (
-    <div className="p-8 space-y-6 w-full">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-6 w-full max-w-7xl mx-auto">
       
       {/* Header Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Gestion des Destinations</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Gestion des Destinations</h1>
           <p className="text-xs text-slate-500 mt-1">Ajoutez, modifiez, consultez et supprimez les destinations.</p>
         </div>
 
         <button 
           onClick={() => handleOpenModal()}
-          className="bg-[#062C21] hover:bg-[#0A3A2C] text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition"
+          className="bg-[#062C21] hover:bg-[#0A3A2C] text-white text-xs font-bold px-4 py-3 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" /> Ajouter une destination
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
-        <Search className="w-4 h-4 text-slate-400" />
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+        <Search className="w-4 h-4 text-slate-400 shrink-0" />
         <input 
           type="text"
           placeholder="Rechercher par nom, ville ou province..."
@@ -246,101 +246,158 @@ const DestinationsAdmin = () => {
         />
       </div>
 
-      {/* Table List */}
+      {/* LISTE: Table sur grand écran, Grille de cartes sur mobile/tablette */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100">
-              <tr>
-                <th className="p-4">Destination</th>
-                <th className="p-4">Ville</th>
-                <th className="p-4">Province</th>
-                <th className="p-4">Description</th>
-                <th className="p-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-slate-400">Chargement...</td>
-                </tr>
-              ) : filteredDestinations.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-slate-400">Aucune destination trouvée.</td>
-                </tr>
-              ) : (
-                filteredDestinations.map((dest) => {
-                  const imgPath = getDestinationImage(dest);
-                  const cityName = getFieldValue(dest.ville || dest.ville_name) || '-';
-                  const provinceName = getFieldValue(dest.province || dest.province_name) || '-';
+        {loading ? (
+          <div className="text-center py-12 text-slate-400 text-xs">Chargement...</div>
+        ) : filteredDestinations.length === 0 ? (
+          <div className="text-center py-12 text-slate-400 text-xs">Aucune destination trouvée.</div>
+        ) : (
+          <>
+            {/* Vue Mobile & Tablette (Cards Grid) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
+              {filteredDestinations.map((dest) => {
+                const imgPath = getDestinationImage(dest);
+                const cityName = getFieldValue(dest.ville || dest.ville_name) || '-';
+                const provinceName = getFieldValue(dest.province || dest.province_name) || '-';
 
-                  return (
-                    <tr key={dest.id} className="hover:bg-slate-50 transition">
-                      <td className="p-4 font-bold text-slate-800 flex items-center gap-3">
-                        <img 
-                          src={getImageUrl(imgPath)} 
-                          alt={dest.nom || 'Destination'} 
-                          className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/150';
-                          }}
-                        />
-                        <span>{dest.nom}</span>
-                      </td>
-                      <td className="p-4 text-slate-600">{cityName}</td>
-                      <td className="p-4 text-slate-600">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-emerald-600" /> {provinceName}
-                        </span>
-                      </td>
-                      <td className="p-4 text-slate-500 max-w-xs truncate">{dest.description || '-'}</td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => handleOpenViewModal(dest)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                            title="Consulter"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleOpenModal(dest)}
-                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                            title="Modifier"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(dest.id)}
-                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                            title="Supprimer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                return (
+                  <div key={dest.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xs">
+                    <div className="flex items-start gap-3">
+                      <img 
+                        src={getImageUrl(imgPath)} 
+                        alt={dest.nom || 'Destination'} 
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/150';
+                        }}
+                      />
+                      <div className="space-y-1 overflow-hidden">
+                        <h3 className="font-bold text-slate-800 text-xs truncate">{dest.nom}</h3>
+                        <p className="text-[11px] text-slate-600">Ville: {cityName}</p>
+                        <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {provinceName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 line-clamp-2">{dest.description || '-'}</p>
+
+                    <div className="flex items-center justify-end gap-1 pt-2 border-t border-slate-200/60">
+                      <button 
+                        onClick={() => handleOpenViewModal(dest)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Consulter"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleOpenModal(dest)}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        title="Modifier"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(dest.id)}
+                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Vue Desktop (Table classique) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100">
+                  <tr>
+                    <th className="p-4">Destination</th>
+                    <th className="p-4">Ville</th>
+                    <th className="p-4">Province</th>
+                    <th className="p-4">Description</th>
+                    <th className="p-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredDestinations.map((dest) => {
+                    const imgPath = getDestinationImage(dest);
+                    const cityName = getFieldValue(dest.ville || dest.ville_name) || '-';
+                    const provinceName = getFieldValue(dest.province || dest.province_name) || '-';
+
+                    return (
+                      <tr key={dest.id} className="hover:bg-slate-50 transition">
+                        <td className="p-4 font-bold text-slate-800 flex items-center gap-3">
+                          <img 
+                            src={getImageUrl(imgPath)} 
+                            alt={dest.nom || 'Destination'} 
+                            className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://via.placeholder.com/150';
+                            }}
+                          />
+                          <span>{dest.nom}</span>
+                        </td>
+                        <td className="p-4 text-slate-600">{cityName}</td>
+                        <td className="p-4 text-slate-600">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-emerald-600" /> {provinceName}
+                          </span>
+                        </td>
+                        <td className="p-4 text-slate-500 max-w-xs truncate">{dest.description || '-'}</td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              onClick={() => handleOpenViewModal(dest)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              title="Consulter"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleOpenModal(dest)}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                              title="Modifier"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(dest.id)}
+                              className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* MODAL: Ajouter / Modifier */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-lg font-bold text-slate-900 mb-4">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-4">
               {currentDestination ? 'Modifier la destination' : 'Ajouter une destination'}
             </h2>
 
@@ -415,26 +472,26 @@ const DestinationsAdmin = () => {
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Description</label>
-               <textarea 
-  rows="4"
-  placeholder="Description détaillée..."
-  value={formData.description}
-  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-emerald-600 transition resize-none"
-></textarea>
+                <textarea 
+                  rows="4"
+                  placeholder="Description détaillée..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-emerald-600 transition resize-none"
+                ></textarea>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50"
                 >
                   Annuler
                 </button>
                 <button 
                   type="submit" 
-                  className="px-4 py-2.5 rounded-xl bg-[#062C21] text-white font-bold hover:bg-[#0A3A2C] transition"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#062C21] text-white font-bold hover:bg-[#0A3A2C] transition"
                 >
                   {currentDestination ? 'Enregistrer' : 'Ajouter'}
                 </button>
@@ -446,8 +503,8 @@ const DestinationsAdmin = () => {
 
       {/* MODAL: Consulter Details */}
       {isViewModalOpen && currentDestination && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-xl relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsViewModalOpen(false)}
               className="absolute top-3 right-3 p-1.5 bg-black/40 text-white rounded-full hover:bg-black/60 transition z-10"
@@ -467,8 +524,8 @@ const DestinationsAdmin = () => {
               />
             </div>
 
-            <div className="p-6 space-y-3">
-              <div className="flex gap-2">
+            <div className="p-5 sm:p-6 space-y-3">
+              <div className="flex flex-wrap gap-2">
                 {getFieldValue(currentDestination.ville || currentDestination.ville_name) && (
                   <span className="px-2.5 py-1 bg-slate-100 text-slate-800 font-bold text-[10px] rounded-md inline-block">
                     {getFieldValue(currentDestination.ville || currentDestination.ville_name)}
@@ -480,7 +537,7 @@ const DestinationsAdmin = () => {
                   </span>
                 )}
               </div>
-              <h2 className="text-lg font-black text-slate-900">{currentDestination.nom}</h2>
+              <h2 className="text-base sm:text-lg font-black text-slate-900">{currentDestination.nom}</h2>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {currentDestination.description || 'Aucune description disponible.'}
               </p>
