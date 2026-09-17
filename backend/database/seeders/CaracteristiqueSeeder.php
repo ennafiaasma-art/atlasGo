@@ -3,24 +3,30 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Caracteristique;
+use App\Models\Auberge;
 
 class CaracteristiqueSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        DB::table('caracteristiques')->insert([
-            [
-                'wifi' => true,
-                'climatisation' => true,
-                'tv' => true,
-                'vue' => 1,
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-        ]);
+        // جلب أول أوبيرج كمثال (أو التأكد من وجود أوبيرج)
+        $auberge = Auberge::first();
+
+        if ($auberge) {
+            $caracteristiques = [
+                'Wifi gratuit',
+                'Climatisation',
+                'Télévision',
+                'Vue sur montagne'
+            ];
+
+            foreach ($caracteristiques as $carac) {
+                Caracteristique::create([
+                    'auberge_id' => $auberge->id,
+                    'nom' => $carac
+                ]);
+            }
+        }
     }
 }

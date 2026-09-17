@@ -7,14 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Caracteristique extends Model
 {
     //
-    protected $fillable = [
-        'vue',
-        'wifi',
-        'etage',
-        'climatisation',
-        'tv'];
-    public function chambres()
-    {
-        return $this->hasMany(Chambre::class);
-    }
+   protected $fillable = ['auberge_id', 'nom'];
+public function chambres() {
+    return $this->belongsToMany(Chambre::class, 'chambre_caracteristique');
+}
 }

@@ -26,6 +26,7 @@ export default function Aubergement() {
   const [showModal, setShowModal] = useState(false);
   const [editingAuberge, setEditingAuberge] = useState(null);
   
+  // Gestion de la sous-vue des chambres
   const [selectedAubergeForChambres, setSelectedAubergeForChambres] = useState(null);
 
   // Notifications & Erreurs
@@ -145,7 +146,7 @@ export default function Aubergement() {
     setError(null);
     setFieldErrors({});
 
-    if (formData.prix !== '' && Number(formData.prix) <= 1) {
+    if (formData.prix !== '' && Number(formData.prix) <= 0) {
       setFieldErrors({ prix: ["Le prix doit être supérieur à 0."] });
       setError("Veuillez corriger les erreurs dans le formulaire.");
       return;
@@ -213,6 +214,7 @@ export default function Aubergement() {
     aub.adresse.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Si une auberge est sélectionnée pour gérer ses chambres, on affiche le composant GererChambre
   if (selectedAubergeForChambres) {
     return (
       <div className="p-3 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
@@ -229,6 +231,7 @@ export default function Aubergement() {
   return (
     <div className="p-3 sm:p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen w-full max-w-7xl mx-auto">
       
+      {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -249,6 +252,7 @@ export default function Aubergement() {
         </button>
       </div>
 
+      {/* Messages de succès / erreur globaux */}
       {message && (
         <div className="flex items-center gap-2 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl">
           <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -263,6 +267,7 @@ export default function Aubergement() {
         </div>
       )}
 
+      {/* Barre de recherche */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
@@ -274,6 +279,7 @@ export default function Aubergement() {
         />
       </div>
 
+      {/* Grille des Auberges */}
       {loading ? (
         <p className="text-xs text-slate-400 text-center py-8">Chargement des auberges...</p>
       ) : filteredAuberges.length === 0 ? (
@@ -321,10 +327,10 @@ export default function Aubergement() {
                       <span>{aub.telephone}</span>
                     </p>
                   )}
-
                 </div>
               </div>
 
+              {/* Actions de la carte */}
               <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-slate-50/50">
                 <button
                   onClick={() => setSelectedAubergeForChambres(aub)}
@@ -356,7 +362,7 @@ export default function Aubergement() {
         </div>
       )}
 
-      {/* Modal Auberge Form */}
+      {/* Modal Ajout / Modification Auberge */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col">
@@ -371,7 +377,7 @@ export default function Aubergement() {
 
             <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
               
-              {/* Nom de l'auberge */}
+              {/* Nom */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Nom de l'auberge</label>
                 <input
@@ -389,6 +395,7 @@ export default function Aubergement() {
                 )}
               </div>
 
+              {/* Adresse */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Adresse</label>
                 <input
@@ -401,8 +408,8 @@ export default function Aubergement() {
                 />
               </div>
 
+              {/* Téléphone & Prix */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Téléphone */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Téléphone</label>
                   <input
@@ -438,6 +445,7 @@ export default function Aubergement() {
                 </div>
               </div>
 
+              {/* Destination & Nombre de chambres */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Destination</label>
@@ -469,6 +477,7 @@ export default function Aubergement() {
                 </div>
               </div>
 
+              {/* Image */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Image de l'auberge</label>
                 <input
@@ -479,6 +488,7 @@ export default function Aubergement() {
                 />
               </div>
 
+              {/* Boutons Modal */}
               <div className="pt-4 flex flex-col-reverse sm:flex-row items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"

@@ -27,7 +27,8 @@ class ChambreController extends Controller
                     }),
                 ],
                 'type' => 'required|string',
-                'prix' => 'required|numeric|min:1', // منع أن الثمن يكون 0 أو أقل
+                'prix' => 'required|numeric|min:1',
+                'statut' => 'required|string',
                 'auberge_id' => 'required|exists:auberges,id',
                 'caracteristique_ids' => 'nullable|array',
                 'caracteristique_ids.*' => 'exists:caracteristiques,id'
@@ -48,6 +49,57 @@ class ChambreController extends Controller
                 'message' => 'Chambre créée avec succès',
                 'chambre' => $chambre
             ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => collect($e->errors())->flatten()->first(),
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $chambre = Chambre::findOrFail($id);
+
+            $validatedData = $request->validate([
+                'numero' => [
+                    'required',
+                    'string',
+                    Rule::unique('chambres')->where(function ($query) use ($request) {
+                        return $query->where('auberge_id', $request->auberge_id);
+                    })->ignore($chambre->id),
+                ],
+                'type' => 'required|string',
+                'prix' => 'required|numeric|min:1',
+                'statut' => 'required|string',
+                'auberge_id' => 'required|exists:auberges,id',
+                'caracteristique_ids' => 'nullable|array',
+                'caracteristique_ids.*' => 'exists:caracteristiques,id'
+            ]);
+
+            $caracteristiqueIds = $validatedData['caracteristique_ids'] ?? null;
+            unset($validatedData['caracteristique_ids']);
+
+            $chambre->update($validatedData);
+
+            if ($caracteristiqueIds !== null) {
+                $chambre->caracteristiques()->sync($caracteristiqueIds);
+            }
+
+            $chambre->load('caracteristiques');
+
+            return response()->json([
+                'message' => 'Chambre modifiée avec succès',
+                'chambre' => $chambre
+            ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([

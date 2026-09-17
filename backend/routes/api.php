@@ -73,12 +73,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auberges', [AubergeController::class, 'store']);
         Route::post('/auberges/{id}', [AubergeController::class, 'update']);
         Route::delete('/auberges/{id}', [AubergeController::class, 'destroy']);
-
+        Route::get('/auberges/{aubergeId}/caracteristiques', [CaracteristiqueController::class, 'getByAuberge']);
         // Gestion des Chambres (Admin) - Ajout et Suppression des chambres par auberge
         Route::post('/chambres', [ChambreController::class, 'store']);
+        Route::post('/chambres/{id}', [ChambreController::class, 'update']);
         Route::delete('/chambres/{id}', [ChambreController::class, 'destroy']);
 
         // Gestion des Caractéristiques (Admin) - Ajout de nouvelles caractéristiques
+        Route::post('/caracteristiques', [CaracteristiqueController::class, 'store']);
+        Route::delete('/caracteristiques/{id}', [CaracteristiqueController::class, 'destroy']);
         Route::post('/caracteristiques', [CaracteristiqueController::class, 'store']);
 
         // Mise à jour du statut des réservations (Admin)

@@ -24,5 +24,9 @@ class Auberge extends Model
     public function chambres()
     {
         return $this->hasMany(Chambre::class);
+
     }
+    public function caracteristiques() {
+    return $this->hasMany(Caracteristique::class);
+}
 }

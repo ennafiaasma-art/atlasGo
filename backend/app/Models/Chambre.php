@@ -10,8 +10,7 @@ class Chambre extends Model
         'numero',
         'type',
         'prix',
-        'auberge_id',
-        'caracteristique_id'];
+        'auberge_id'];
         public function auberge()
     {
         return $this->belongsTo(Auberge::class);
