@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AubergeController;
 use App\Http\Controllers\Api\ChambreController;
 use App\Http\Controllers\Api\CaracteristiqueController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -86,6 +87,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Mise à jour du statut des réservations (Admin)
         Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/favorites', [FavoriteController::class, 'index']); // لجلب قائمة المفضلة
+    Route::post('/favorites', [FavoriteController::class, 'store']); // للإضافة أو الإزالة (Toggle)
+});
+
     });
     });
 
