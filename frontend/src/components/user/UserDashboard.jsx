@@ -6,6 +6,8 @@ import {
 import Sidebar from '../Sidebar.jsx';
 import MesFavoris from './MesFavoris';
 import VoirDestinations from './VoirDestinations';
+import VoirReservations from './VoirReservations'; 
+import Profile from './Profile';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -14,7 +16,7 @@ export default function UserDashboard() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const [userData, setUserData] = useState(null);
-  const [stats, setStats] = useState({ destinations: 0, auberges: 0, reservations: 0, favoris: 15 });
+  const [stats, setStats] = useState({ destinations: 0, auberges: 0, reservations: 0, favoris: 0 });
   
   const [destinations, setDestinations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -38,20 +40,20 @@ export default function UserDashboard() {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [userRes, destRes, catRes, aubRes] = await Promise.all([
+      const [userRes, destRes, catRes, aubRes, favRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/user`, { headers }).catch(() => ({ data: null })),
         axios.get(`${API_BASE_URL}/destinations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE_URL}/categories`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE_URL}/auberges`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_BASE_URL}/auberges`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE_URL}/favoris`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       if (userRes.data) {
-        setUserData(userRes.data);
+        setUserData(userRes.data.user || userRes.data);
       }
 
       const destinationsList = destRes.data?.destinations || (Array.isArray(destRes.data) ? destRes.data : []);
       
-      // جلب الفئات ديناميكياً من الباك إند (إيلا كانت الـ API فارغة كترجع مصفوفة خاوية بدون قيم ستاتيك)
       const categoriesData = catRes.data?.categories || catRes.data?.data || catRes.data;
       const categoriesList = Array.isArray(categoriesData) ? categoriesData : [];
 
@@ -59,10 +61,15 @@ export default function UserDashboard() {
       setCategories(categoriesList);
 
       const aubergesList = aubRes.data?.auberges || aubRes.data?.data || (Array.isArray(aubRes.data) ? aubRes.data : []);
+      
+      const favorisData = favRes.data?.favoris || favRes.data?.data || favRes.data;
+      const favorisList = Array.isArray(favorisData) ? favorisData : [];
+
       setStats(prev => ({
         ...prev,
         destinations: destinationsList.length,
-        auberges: aubergesList.length
+        auberges: aubergesList.length,
+        favoris: favorisList.length
       }));
 
     } catch (err) {
@@ -90,7 +97,6 @@ export default function UserDashboard() {
     const destName = (dest.nom_destination || dest.nom || '').toLowerCase();
     const matchesSearch = destName.includes(searchQuery.toLowerCase());
     
-    // التصفية إما بـ ID أو بـ Nom ديال الفئة
     const matchesCategory = selectedCategory === 'all' || 
       dest.categorie_id === selectedCategory || 
       dest.categorie?.nom?.toLowerCase() === selectedCategory.toLowerCase() ||
@@ -299,38 +305,13 @@ export default function UserDashboard() {
           )}
 
           {activeSection === 'mes-reservations' && (
-            <div className="space-y-6 max-w-5xl mx-auto">
-              <h3 className="text-xl font-bold text-slate-900">Mes réservations</h3>
-              {/* Contenu réservations */}
-            </div>
+            <VoirReservations />
           )}
 
           {activeSection === 'favoris' && <MesFavoris />}
 
-          {activeSection === 'profile' && (
-            <div className="bg-white p-8 rounded-3xl border border-emerald-100 shadow-xs space-y-6 max-w-2xl mx-auto">
-              <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-                <div className="w-16 h-16 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xl">
-                  {userData?.name?.charAt(0) || 'A'}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">{userData?.name || 'Asma'}</h3>
-                  <p className="text-xs text-slate-500">{userData?.email || 'asma@example.com'}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-4 text-xs">
-                <div className="flex justify-between py-2 border-b border-slate-50">
-                  <span className="text-slate-400 font-medium">Rôle</span>
-                  <span className="font-bold text-slate-700 capitalize">{userData?.role || 'Voyageur'}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-slate-50">
-                  <span className="text-slate-400 font-medium">Région</span>
-                  <span className="font-bold text-slate-700">Béni Mellal-Khénifra (Azilal)</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Hna t-calia l'component Profile li sawbti dyal bssaḥ */}
+          {activeSection === 'profile' && <Profile />}
           
         </main>
       </div>
