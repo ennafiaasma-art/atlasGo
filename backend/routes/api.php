@@ -87,4 +87,5 @@ Route::middleware('auth:sanctum')->group(function () {
         // Mise à jour du statut des réservations (Admin)
         Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
     });
-});
+    });
+

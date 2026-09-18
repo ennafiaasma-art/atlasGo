@@ -11,6 +11,8 @@ services:
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
+    ports:
+      - "8000:8000"
     networks:
       - atlas-go-network
     environment:
@@ -20,6 +22,7 @@ services:
       - DB_PASSWORD=root
     depends_on:
       - db
+    command: php artisan serve --host=0.0.0.0 --port=8000
 
   # 2. Database (MySQL)
   db:
@@ -29,8 +32,8 @@ services:
     environment:
       MYSQL_DATABASE: atlasgo
       MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
+    # ports:
+    #   - "3307:3306"
     volumes:
       - dbdata:/var/lib/mysql
     networks:
