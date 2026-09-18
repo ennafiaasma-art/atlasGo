@@ -30,7 +30,7 @@ Route::get('/activites', [ActiviteController::class, 'index']);
 // Auberges & Chambres (Consultation publique)
 Route::get('/auberges', [AubergeController::class, 'index']);
 Route::get('/auberges/{id}', [AubergeController::class, 'show']);
-Route::get('/auberges/{aubergeId}/chambres', [ChambreController::class, 'index']); // Lister les chambres d'une auberge spécifique
+Route::get('/auberges/{aubergeId}/chambres', [ChambreController::class, 'index']);
 
 // Caractéristiques (Consultation publique pour l'affichage)
 Route::get('/caracteristiques', [CaracteristiqueController::class, 'index']);
@@ -55,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
 
+    // Gestion des Favoris (لجميع المستخدمين المسجلين دخولهم: Client أو Admin)
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites', [FavoriteController::class, 'store']);
 
     /*
     |--------------------------------------------------------------------------
@@ -63,36 +66,29 @@ Route::middleware('auth:sanctum')->group(function () {
     */
     Route::middleware('admin')->group(function () {
 
-        // CRUD Destinations (Store, Update, Destroy)
+        // CRUD Destinations
         Route::apiResource('destinations', DestinationController::class)->except(['index', 'show']);
 
         // CRUD Catégories & Activités
         Route::apiResource('categories', CategorieController::class)->except(['index', 'show']);
         Route::apiResource('activites', ActiviteController::class)->except(['index', 'show']);
 
-        // Gestion des Auberges (Admin) - Utilisation de POST pour l'update avec images (multipart/form-data)
+        // Gestion des Auberges (Admin)
         Route::post('/auberges', [AubergeController::class, 'store']);
         Route::post('/auberges/{id}', [AubergeController::class, 'update']);
         Route::delete('/auberges/{id}', [AubergeController::class, 'destroy']);
         Route::get('/auberges/{aubergeId}/caracteristiques', [CaracteristiqueController::class, 'getByAuberge']);
-        // Gestion des Chambres (Admin) - Ajout et Suppression des chambres par auberge
+
+        // Gestion des Chambres (Admin)
         Route::post('/chambres', [ChambreController::class, 'store']);
         Route::post('/chambres/{id}', [ChambreController::class, 'update']);
         Route::delete('/chambres/{id}', [ChambreController::class, 'destroy']);
 
-        // Gestion des Caractéristiques (Admin) - Ajout de nouvelles caractéristiques
+        // Gestion des Caractéristiques (Admin)
         Route::post('/caracteristiques', [CaracteristiqueController::class, 'store']);
         Route::delete('/caracteristiques/{id}', [CaracteristiqueController::class, 'destroy']);
-        Route::post('/caracteristiques', [CaracteristiqueController::class, 'store']);
 
         // Mise à jour du statut des réservations (Admin)
         Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/favorites', [FavoriteController::class, 'index']); // لجلب قائمة المفضلة
-    Route::post('/favorites', [FavoriteController::class, 'store']); // للإضافة أو الإزالة (Toggle)
+    });
 });
-
-    });
-    });
-

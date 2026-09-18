@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, MapPin, Star, Bed, ArrowLeft, Phone, Calendar, Heart, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, Star, Bed, ArrowLeft, Phone, Calendar, CheckCircle2 } from 'lucide-react';
+import FavoriteButton from './FavoriteButton';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -77,24 +78,6 @@ export default function VoirDestinations() {
   const getAubergePrix = (aub) => aub?.prix || aub?.prix_par_nuit || aub?.tarif || null;
   const getAubergePhone = (aub) => aub?.telephone || aub?.phone || aub?.tel || 'Non disponible';
   const getAubergeDescription = (aub) => aub?.description || aub?.desc || aub?.details || 'Profitez d\'un séjour inoubliable dans cette auberge chaleureuse offrant tout le confort nécessaire.';
-
-  // دالة إضافة أو إزالة الوجهة من المفضلة (Toggle Favorites)
-  const handleToggleDestinationFavorite = async (destinationId, e) => {
-    if (e) e.stopPropagation();
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_BASE_URL}/favorites`, { 
-        destination_id: destinationId 
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      alert(response.data.message);
-    } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la modification des favoris.');
-    }
-  };
 
   const handleCreateReservation = async (e) => {
     e.preventDefault();
@@ -419,14 +402,8 @@ export default function VoirDestinations() {
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                   
-                  {/* زر المفضلة (Heart) للوجهة */}
-                  <button 
-                    onClick={(e) => handleToggleDestinationFavorite(dest.id, e)}
-                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-full text-slate-600 hover:text-red-500 shadow-sm transition"
-                    title="Ajouter / Retirer des favoris"
-                  >
-                    <Heart className="w-4 h-4 text-red-500 fill-red-500/20 hover:fill-red-500 transition" />
-                  </button>
+                  {/* استدعاء Component ديال الزر المفضلة بذكاء */}
+                  <FavoriteButton destinationId={dest.id} />
                 </div>
 
                 <div className="p-4 space-y-2">

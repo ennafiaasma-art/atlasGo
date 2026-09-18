@@ -101,7 +101,7 @@ export default function Sidebar({ activeSection, setActiveSection, isOpen = true
                   key={item.id}
                   onClick={() => {
                     setActiveSection(item.id);
-                    if (onClose) onClose(); // تسد القائمة في الموبايل مللي يكليكي المستخدم
+                    if (onClose) onClose(); 
                   }}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                     isActive
