@@ -46,7 +46,6 @@ export default function Sidebar({ activeSection, setActiveSection, isOpen = true
 
   return (
     <>
-      {/* Overlay للموبايل فاش كتكون الـ Sidebar محلولة */}
       {isOpen && (
         <div 
           onClick={onClose} 
@@ -77,7 +76,6 @@ export default function Sidebar({ activeSection, setActiveSection, isOpen = true
               </div>
             </div>
 
-            {/* زر الإغلاق في الهاتف */}
             {onClose && (
               <button 
                 onClick={onClose}

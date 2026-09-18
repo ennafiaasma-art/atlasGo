@@ -31,7 +31,7 @@ export default function VoirDestinations() {
       const url = isSearching ? `${API_BASE_URL}/destinations/recherch` : `${API_BASE_URL}/destinations`;
       const config = {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-        ...(isSearching && { params: { ville: search } }) // Corrigé de 'search' vers 'ville' 
+        ...(isSearching && { params: { ville: search } })
       };
 
       const response = await axios.get(url, config);
@@ -78,17 +78,21 @@ export default function VoirDestinations() {
   const getAubergePhone = (aub) => aub?.telephone || aub?.phone || aub?.tel || 'Non disponible';
   const getAubergeDescription = (aub) => aub?.description || aub?.desc || aub?.details || 'Profitez d\'un séjour inoubliable dans cette auberge chaleureuse offrant tout le confort nécessaire.';
 
-  const handleToggleFavoris = async (aubergeId, e) => {
+  // دالة إضافة أو إزالة الوجهة من المفضلة (Toggle Favorites)
+  const handleToggleDestinationFavorite = async (destinationId, e) => {
     if (e) e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/favoris`, { auberge_id: aubergeId }, {
+      const response = await axios.post(`${API_BASE_URL}/favorites`, { 
+        destination_id: destinationId 
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Auberge ajoutée aux favoris avec succès !');
+      
+      alert(response.data.message);
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de l\'ajout aux favoris.');
+      alert('Erreur lors de la modification des favoris.');
     }
   };
 
@@ -96,7 +100,7 @@ export default function VoirDestinations() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id || 1; // Fallback ila makantch chambre explicite
+      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id || 1;
       
       const payload = {
         chambre_id: chambreId,
@@ -153,15 +157,6 @@ export default function VoirDestinations() {
               alt={getAubergeName(aub)}
               className="w-full h-full object-cover"
             />
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button 
-                onClick={(e) => handleToggleFavoris(aub.id, e)}
-                className="p-2.5 bg-white/90 backdrop-blur-md rounded-full text-slate-700 hover:text-red-500 shadow-md transition"
-                title="Enregistrer / Favoris"
-              >
-                <Heart className="w-5 h-5" />
-              </button>
-            </div>
           </div>
 
           <div className="p-6 sm:p-8 space-y-6">
@@ -210,13 +205,6 @@ export default function VoirDestinations() {
               >
                 <Calendar className="w-4 h-4" />
                 Réserver maintenant
-              </button>
-              <button
-                onClick={(e) => handleToggleFavoris(aub.id, e)}
-                className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-2 transition"
-              >
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                Enregistrer
               </button>
             </div>
           </div>
@@ -356,13 +344,6 @@ export default function VoirDestinations() {
                         alt={getAubergeName(aub)} 
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                       />
-                      <button 
-                        onClick={(e) => handleToggleFavoris(aub.id, e)}
-                        className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-md rounded-full text-slate-600 hover:text-red-500 shadow-sm"
-                        title="Enregistrer"
-                      >
-                        <Heart className="w-3.5 h-3.5" />
-                      </button>
                     </div>
 
                     <div className="p-4 space-y-2">
@@ -437,6 +418,15 @@ export default function VoirDestinations() {
                     alt={dest.nom_destination || 'Destination'}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
+                  
+                  {/* زر المفضلة (Heart) للوجهة */}
+                  <button 
+                    onClick={(e) => handleToggleDestinationFavorite(dest.id, e)}
+                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-full text-slate-600 hover:text-red-500 shadow-sm transition"
+                    title="Ajouter / Retirer des favoris"
+                  >
+                    <Heart className="w-4 h-4 text-red-500 fill-red-500/20 hover:fill-red-500 transition" />
+                  </button>
                 </div>
 
                 <div className="p-4 space-y-2">
