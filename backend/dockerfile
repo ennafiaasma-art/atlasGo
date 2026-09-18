@@ -1,0 +1,28 @@
+FROM php:8.2-fpm
+# installation my sql
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip
+
+# cleaning cash
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# installation  PHP
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+#  installer Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+COPY . .
+
+RUN composer install
+
+EXPOSE 9000
+CMD ["php-fpm"]
