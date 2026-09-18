@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # 1. Backend (Laravel)
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: auberge_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - auberge-network
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=atlasgo
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    depends_on:
+      - db
+
+  # 2. Database (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: auberge_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: auberge_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - auberge-network
+
+  # 3. Frontend (React / Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: auberge_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - auberge-network
+
+volumes:
+  dbdata:
+
+networks:
+  auberge-network:
+    driver: bridge
