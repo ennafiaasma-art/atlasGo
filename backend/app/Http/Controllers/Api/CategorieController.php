@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategorieRequest; // 👈 استدعاء الـ Request
+use App\Http\Requests\CategorieRequest;
 use App\Models\Categorie;
 
 class CategorieController extends Controller
 {
     public function index()
     {
-        $categories = Categorie::with('activites')->get(); // كيجيب حتى الأنشطة المرتبطة بيها إيلا بغيتي
+        $categories = Categorie::with('activites')->get();  
         return response()->json($categories);
     }
 

@@ -1,99 +1,54 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Compass,
-  Building2,
-  LayoutDashboard,
-  Users,
-  Settings,
-  LogOut,
-  Heart,
-  Activity,
-  CalendarDays,
-  X
+import { 
+  LayoutDashboard, 
+  MapPin, 
+  CalendarDays, 
+  Heart, 
+  User, 
+  LogOut 
 } from 'lucide-react';
 
-export default function Sidebar({ activeSection, setActiveSection, isOpen = true, onClose }) {
-  const navigate = useNavigate();
+export default function Sidebar({ activeSection, setActiveSection, isOpen, onClose }) {
   
-  const userRole = localStorage.getItem('role') || 'client'; 
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
-
-  const adminMenuItems = [
+  const menuItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { id: 'destinations', label: 'Destinations', icon: Compass },
-    { id: 'accommodations', label: 'Hébergements', icon: Building2 },
-    { id: 'activites', label: 'Activités', icon: Activity },
-    { id: 'favoris', label: 'Favoris', icon: Heart },
-    { id: 'users', label: 'Utilisateurs', icon: Users },
-    { id: 'settings', label: 'Paramètres', icon: Settings }
-  ];
-
-  const clientMenuItems = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { id: 'destinations', label: 'Destinations', icon: Compass },
-    { id: 'activites', label: 'Activités', icon: Activity },
+    { id: 'destinations', label: 'Destinations', icon: MapPin },
     { id: 'mes-reservations', label: 'Mes réservations', icon: CalendarDays },
     { id: 'favoris', label: 'Favoris', icon: Heart },
-    { id: 'settings', label: 'Paramètres', icon: Settings }
+    { id: 'profile', label: 'Mon Profil', icon: User }, // ← هنا تزاد البروفيل
   ];
-
-  const currentMenuItems = userRole === 'admin' ? adminMenuItems : clientMenuItems;
 
   return (
     <>
+      {/* Overlay mobile */}
       {isOpen && (
         <div 
           onClick={onClose} 
-          className="fixed inset-0 bg-slate-950/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-xs"
         />
       )}
 
-      {/* Sidebar Container */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 
-        border-r border-slate-800 flex-shrink-0 min-h-screen
-        transform transition-transform duration-300 ease-in-out
+        w-64 bg-slate-900 text-slate-300 flex flex-col justify-between
+        transition-transform duration-300 ease-in-out shadow-lg
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="space-y-8">
-          {/* Logo / Title + Close Button for Mobile */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-800 flex items-center justify-center text-white font-black text-lg shadow-md shrink-0">
-                A
-              </div>
-              <div className="min-w-0">
-                <h2 className="font-bold text-white text-base tracking-wide truncate">AtlasGo</h2>
-                <p className="text-[10px] text-slate-400 truncate">
-                  {userRole === 'admin' ? "Panneau d'administration" : "Espace Voyageur"}
-                </p>
-              </div>
-            </div>
-
-            {onClose && (
-              <button 
-                onClick={onClose}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg lg:hidden transition"
-                title="Fermer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+        {/* En-tête de la Sidebar */}
+        <div className="p-6 space-y-6">
+          <div>
+            <h1 className="text-white font-extrabold text-lg tracking-wider flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+              AtlasGo
+            </h1>
+            <p className="text-[11px] text-slate-400 mt-0.5">Espace Voyageur</p>
           </div>
 
-          {/* Navigation Links Dynamic */}
           <nav className="space-y-1.5">
-            <div className="pb-2 text-[10px] uppercase tracking-wider text-slate-500 px-3 font-semibold">
-              {userRole === 'admin' ? 'Administration' : 'Menu Principal'}
-            </div>
-
-            {currentMenuItems.map((item) => {
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 pb-2">
+              Menu Principal
+            </p>
+            {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
               return (
@@ -101,30 +56,35 @@ export default function Sidebar({ activeSection, setActiveSection, isOpen = true
                   key={item.id}
                   onClick={() => {
                     setActiveSection(item.id);
-                    if (onClose) onClose(); 
+                    if (onClose) onClose();
                   }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                    isActive
-                      ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/30'
-                      : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                    isActive 
+                      ? 'bg-emerald-600 text-white shadow-sm' 
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span className="truncate">{item.label}</span>
+                  <Icon className="w-4 h-4" />
+                  {item.label}
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Bouton Déconnexion */}
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-red-600/10 hover:text-red-400 transition w-full"
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          <span>Déconnexion</span>
-        </button>
+        {/* Bouton de Déconnexion en bas */}
+        <div className="p-6 border-t border-slate-800">
+          <button 
+            onClick={() => {
+              localStorage.removeItem('token');
+              window.location.href = '/login'; // أو الصفحة اللي كتحول ليها عند الخروج
+            }}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            Déconnexion
+          </button>
+        </div>
       </aside>
     </>
   );

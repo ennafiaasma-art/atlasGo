@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; 
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -39,6 +39,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Reservation::class);
     }
+     public function favoriteDestinations()
+    {
+        return $this->belongsToMany(Destination::class, 'favorites', 'user_id', 'destination_id');
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -52,4 +56,5 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
 }

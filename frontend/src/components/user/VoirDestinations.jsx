@@ -6,24 +6,30 @@ import FavoriteButton from './FavoriteButton';
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export default function VoirDestinations() {
+  // États pour la gestion des destinations et de la recherche
   const [destinations, setDestinations] = useState([]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   
+  // États pour la gestion des auberges d'une destination spécifique
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [aubergesDestination, setAubergesDestination] = useState([]);
   const [loadingAuberges, setLoadingAuberges] = useState(false);
 
+  // États pour les détails d'une auberge et le système de réservation
   const [selectedAubergeForDetails, setSelectedAubergeForDetails] = useState(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationData, setReservationData] = useState({ date_debut: '', date_fin: '', nb_personnes: 1 });
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Charger les destinations et les favoris au premier rendu du composant
   useEffect(() => {
     fetchDestinations('');
   }, []);
 
+  // Fonction pour récupérer les destinations et la liste des favoris de l'utilisateur
   const fetchDestinations = async (search) => {
     setLoading(true);
     try {
@@ -35,9 +41,20 @@ export default function VoirDestinations() {
         ...(isSearching && { params: { ville: search } })
       };
 
-      const response = await axios.get(url, config);
-      const list = response.data?.destinations || response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      // Récupération simultanée des destinations et des favoris pour optimiser l'affichage
+      const [destResponse, favResponse] = await Promise.all([
+        axios.get(url, config),
+        axios.get(`${API_BASE_URL}/favorites`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } }))
+      ]);
+
+      const list = destResponse.data?.destinations || destResponse.data?.data || (Array.isArray(destResponse.data) ? destResponse.data : []);
       setDestinations(list);
+
+      // Extraction des IDs des destinations favorites pour marquer les cœurs
+      const favsData = favResponse.data?.data || favResponse.data || [];
+      const favIds = favsData.map(fav => fav.id || fav.destination_id);
+      setFavoriteIds(favIds);
+
       setError(null);
     } catch (err) {
       setError('Impossible de charger les destinations.');
@@ -46,6 +63,7 @@ export default function VoirDestinations() {
     }
   };
 
+  // Fonction pour récupérer les auberges liées à une destination
   const fetchAubergesForDestination = async (dest) => {
     setSelectedDestination(dest);
     setSelectedAubergeForDetails(null);
@@ -73,12 +91,14 @@ export default function VoirDestinations() {
     }
   };
 
+  // Fonctions utilitaires pour s'adapter aux différentes structures de données de l'API
   const getAubergeName = (aub) => aub?.nom || aub?.nom_auberge || aub?.title || 'Auberge sans nom';
   const getAubergeVille = (aub) => aub?.ville || aub?.adresse || aub?.emplacement || aub?.localisation || selectedDestination?.ville || selectedDestination?.nom_destination || 'Azilal';
   const getAubergePrix = (aub) => aub?.prix || aub?.prix_par_nuit || aub?.tarif || null;
   const getAubergePhone = (aub) => aub?.telephone || aub?.phone || aub?.tel || 'Non disponible';
   const getAubergeDescription = (aub) => aub?.description || aub?.desc || aub?.details || 'Profitez d\'un séjour inoubliable dans cette auberge chaleureuse offrant tout le confort nécessaire.';
 
+  // Gestion de la création d'une réservation
   const handleCreateReservation = async (e) => {
     e.preventDefault();
     try {
@@ -113,28 +133,29 @@ export default function VoirDestinations() {
     }
   };
 
+  // Générer l'URL correcte de l'image (locale storage ou lien externe)
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=800&q=80';
     return imagePath.startsWith('http') ? imagePath : `http://127.0.0.1:8000/storage/${imagePath}`;
   };
 
-  // 1. DETAILS DE L'AUBERGE
+  // 1. VUE DES DÉTAILS D'UNE AUBERGE SPÉCIFIQUE
   if (selectedAubergeForDetails) {
     const aub = selectedAubergeForDetails;
     const prix = getAubergePrix(aub);
 
     return (
-      <div className="space-y-8 animate-fadeIn">
+      <div className="space-y-6 sm:space-y-8 animate-fadeIn p-4 sm:p-6 max-w-7xl mx-auto">
         <button
           onClick={() => setSelectedAubergeForDetails(null)}
-          className="flex items-center gap-2 text-xs font-semibold text-[#215234] bg-emerald-50 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition"
+          className="flex items-center gap-2 text-xs font-semibold text-[#215234] bg-emerald-50 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition shadow-xs"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour aux auberges de {selectedDestination.nom_destination || selectedDestination.nom}
         </button>
 
         <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
-          <div className="relative h-72 sm:h-96 bg-slate-100">
+          <div className="relative h-64 sm:h-80 md:h-96 bg-slate-100">
             <img
               src={getImageUrl(aub.image)}
               alt={getAubergeName(aub)}
@@ -143,16 +164,16 @@ export default function VoirDestinations() {
           </div>
 
           <div className="p-6 sm:p-8 space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">{getAubergeName(aub)}</h1>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">{getAubergeName(aub)}</h1>
                 <p className="text-xs text-emerald-800 font-semibold flex items-center gap-1 mt-1">
                   <MapPin className="w-4 h-4" /> 
                   {getAubergeVille(aub)}
                 </p>
               </div>
-              <div className="text-right">
-                <span className="text-xl font-extrabold text-[#215234]">
+              <div className="text-left sm:text-right">
+                <span className="text-lg sm:text-xl font-extrabold text-[#215234]">
                   {prix ? `${prix} DH` : 'Prix non spécifié'}
                 </span>
                 <span className="block text-[11px] text-slate-400">par nuit</span>
@@ -184,7 +205,7 @@ export default function VoirDestinations() {
             <div className="pt-4 border-t border-slate-100 flex items-center gap-4">
               <button
                 onClick={() => setShowReservationModal(true)}
-                className="flex-1 py-3 bg-[#215234] hover:bg-[#1a4129] text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
+                className="w-full sm:w-auto flex-1 py-3 bg-[#215234] hover:bg-[#1a4129] text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
               >
                 <Calendar className="w-4 h-4" />
                 Réserver maintenant
@@ -193,7 +214,7 @@ export default function VoirDestinations() {
           </div>
         </div>
 
-        {/* Modal de Réservation */}
+        {/* Modal de Réservation Responsive */}
         {showReservationModal && (
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
@@ -243,7 +264,7 @@ export default function VoirDestinations() {
                       type="submit" 
                       className="flex-1 py-3 bg-[#215234] text-white font-bold rounded-xl hover:bg-[#1a4129] transition"
                     >
-                      Confirmer la réservation
+                      Confirmer
                     </button>
                     <button 
                       type="button" 
@@ -262,13 +283,13 @@ export default function VoirDestinations() {
     );
   }
 
-  // 2. LISTE DES AUBERGES PAR DESTINATION
+  // 2. VUE DE LA LISTE DES AUBERGES POUR UNE DESTINATION CHOISIE
   if (selectedDestination) {
     return (
-      <div className="space-y-8 animate-fadeIn">
+      <div className="space-y-6 sm:space-y-8 animate-fadeIn p-4 sm:p-6 max-w-7xl mx-auto">
         <button
           onClick={() => setSelectedDestination(null)}
-          className="flex items-center gap-2 text-xs font-semibold text-[#215234] bg-emerald-50 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition"
+          className="flex items-center gap-2 text-xs font-semibold text-[#215234] bg-emerald-50 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition shadow-xs"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour aux destinations
@@ -283,7 +304,7 @@ export default function VoirDestinations() {
             />
           </div>
           <div className="p-6 sm:p-8 space-y-4">
-            <h1 className="text-2xl font-extrabold text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
               {selectedDestination.nom_destination || selectedDestination.nom}
             </h1>
             <p className="text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
@@ -299,7 +320,7 @@ export default function VoirDestinations() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Bed className="w-5 h-5 text-[#215234]" />
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">
               Auberges disponibles à {selectedDestination.nom_destination || selectedDestination.nom}
             </h2>
           </div>
@@ -330,9 +351,9 @@ export default function VoirDestinations() {
                     </div>
 
                     <div className="p-4 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-sm text-slate-900">{getAubergeName(aub)}</h3>
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                      <div className="flex justify-between items-center gap-2">
+                        <h3 className="font-bold text-sm text-slate-900 truncate">{getAubergeName(aub)}</h3>
+                        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 flex-shrink-0">
                           <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                           <span>{aub.note ?? '4.8'}</span>
                         </div>
@@ -348,7 +369,7 @@ export default function VoirDestinations() {
                         {prix ? `${prix} DH / nuit` : 'Prix sur demande'}
                       </span>
                       <span className="text-[#215234] font-semibold group-hover:underline">
-                        Voir détails →
+                        Détails →
                       </span>
                     </div>
                   </div>
@@ -361,23 +382,24 @@ export default function VoirDestinations() {
     );
   }
 
-  // 3. LISTE DES DESTINATIONS
+  // 3. VUE PRINCIPALE DE LA LISTE DES DESTINATIONS (AVEC RECHERCHE ET RESPONSIVE GRID)
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
+      {/* En-tête et Barre de recherche Responsive */}
+      <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Destinations</h2>
           <p className="text-xs text-slate-400 mt-1">Explorez les meilleurs sites touristiques de la région</p>
         </div>
 
-        <div className="relative w-72">
+        <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); fetchDestinations(e.target.value); }}
             placeholder="Rechercher une destination..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
+            className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-800/20 shadow-xs"
           />
         </div>
       </div>
@@ -402,8 +424,11 @@ export default function VoirDestinations() {
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                   
-                  {/* استدعاء Component ديال الزر المفضلة بذكاء */}
-                  <FavoriteButton destinationId={dest.id} />
+                  {/* Bouton Favori dynamique : reste visible et synchronisé */}
+                  <FavoriteButton 
+                    destinationId={dest.id} 
+                    initialIsFavorite={favoriteIds.includes(dest.id)} 
+                  />
                 </div>
 
                 <div className="p-4 space-y-2">
@@ -418,7 +443,7 @@ export default function VoirDestinations() {
                   </div>
                   <div className="flex items-center gap-1 text-xs text-slate-500">
                     <MapPin className="w-3.5 h-3.5 text-emerald-800 flex-shrink-0" />
-                    <span>{dest.ville ? `${dest.ville}, ` : ''}{dest.province || 'Azilal'}</span>
+                    <span className="truncate">{dest.ville ? `${dest.ville}, ` : ''}{dest.province || 'Azilal'}</span>
                   </div>
                 </div>
               </div>
@@ -429,7 +454,7 @@ export default function VoirDestinations() {
                     e.stopPropagation();
                     fetchAubergesForDestination(dest);
                   }}
-                  className="w-full py-2 bg-[#215234] hover:bg-[#1a4129] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition"
+                  className="w-full py-2.5 bg-[#215234] hover:bg-[#1a4129] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition"
                 >
                   <Bed className="w-4 h-4" />
                   Voir les auberges
