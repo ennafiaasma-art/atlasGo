@@ -98,7 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/users', [AdminUserController::class, 'index']);
         Route::post('/admin/users', [AdminUserController::class, 'store']);
         Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
-    
+
+        Route::get('/admin/clients', [AdminUserController::class, 'indexClients']);
 
     });
 });

@@ -51,4 +51,14 @@ class AdminUserController extends Controller
             'message' => 'Administrateur supprimé avec succès.'
         ]);
     }
+
+    public function indexClients()
+    {
+        $clients= User::where('role', 'user')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $clients
+        ]);
+    }
 }

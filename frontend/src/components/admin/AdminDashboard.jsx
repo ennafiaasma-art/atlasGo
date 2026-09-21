@@ -20,6 +20,7 @@ import AccommodationsSection from './Aubergement.jsx';
 import Sidebar from '../Sidebar.jsx';
 import AdminFavoritesSection from './AdminFavoritesSection.jsx'; 
 import AdminProfileSection from './AdminProfileSection.jsx';
+import AdminClientsSection from './AdminClientsSection.jsx';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('accommodations');
@@ -64,10 +65,10 @@ export default function AdminDashboard() {
         {activeSection === 'destinations' && <DestinationsSection />}
         {activeSection === 'accommodations' && <AccommodationsSection />}
         {activeSection === 'favoris' && <AdminFavoritesSection />}
-        {(activeSection === 'profile' || activeSection === 'users') && <AdminProfileSection />}
-        
+        {activeSection === 'users' && <AdminClientsSection />}
+        {activeSection === 'profile' && <AdminProfileSection />}        
         {/* Sections en cours de développement ou Profile */}
-        {!['destinations', 'accommodations', 'favoris', 'profile'].includes(activeSection) && (
+        {!['destinations', 'accommodations', 'favoris', 'profile', 'users'].includes(activeSection) && (
           <div className="p-4 sm:p-8">
             <h1 className="text-lg sm:text-xl font-bold text-slate-900">
               {sectionTitles[activeSection] || 'Section'}
