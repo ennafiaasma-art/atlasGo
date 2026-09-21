@@ -3,11 +3,11 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DestinationController;
 use App\Http\Controllers\Api\CategorieController;
-use App\Http\Controllers\Api\ActiviteController;
 use App\Http\Controllers\Api\AubergeController;
 use App\Http\Controllers\Api\ChambreController;
 use App\Http\Controllers\Api\CaracteristiqueController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
@@ -89,6 +89,16 @@ Route::middleware('auth:sanctum')->group(function () {
         // Mise à jour du statut des réservations (Admin)
         Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
         Route::get('/admin/destinations-favorites', [FavoriteController::class, 'getAdminFavorites']);
+
+
+        // routes gerer admin
+
+
+
+        Route::get('/admin/users', [AdminUserController::class, 'index']);
+        Route::post('/admin/users', [AdminUserController::class, 'store']);
+        Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
+    
 
     });
 });

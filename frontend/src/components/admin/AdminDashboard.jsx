@@ -17,7 +17,8 @@ import {
 // Importation des composants
 import DestinationsSection from './DestinationsAdmin.jsx';
 import AccommodationsSection from './Aubergement.jsx';
-import Sidebar from '../Sidebar.jsx'; 
+import Sidebar from '../Sidebar.jsx';
+import AdminFavoritesSection from './AdminFavoritesSection.jsx'; 
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('accommodations');
@@ -61,9 +62,10 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-x-hidden pt-16 lg:pt-0 w-full">
         {activeSection === 'destinations' && <DestinationsSection />}
         {activeSection === 'accommodations' && <AccommodationsSection />}
+        {activeSection === 'favoris' && <AdminFavoritesSection />}
         
         {/* Sections en cours de développement ou Profile */}
-        {!['destinations', 'accommodations'].includes(activeSection) && (
+        {!['destinations', 'accommodations', 'favoris'].includes(activeSection) && (
           <div className="p-4 sm:p-8">
             <h1 className="text-lg sm:text-xl font-bold text-slate-900">
               {sectionTitles[activeSection] || 'Section'}
