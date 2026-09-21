@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
-    public function index()
+   public function index()
     {
-        $users = User::all(); // أو User::where('role', 'admin')->get() على حسب جدولك
+        $admins = User::where('role', 'admin')->get();
+
         return response()->json([
             'status' => 'success',
-            'data' => $users
+            'data' => $admins
         ]);
     }
 
