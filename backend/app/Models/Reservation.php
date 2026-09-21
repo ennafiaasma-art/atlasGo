@@ -12,9 +12,8 @@ class Reservation extends Model
         'nb_personne',
         'statut',
         'user_id',
-        'activite_id',
         'chambre_id',
-        
+
     ];
 
     public function user()
@@ -22,15 +21,7 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function auberge()
-    {
-        return $this->belongsTo(Auberge::class);
-    }
 
-    public function activite()
-    {
-        return $this->belongsTo(Activite::class);
-    }
 
     public function chambre()
     {

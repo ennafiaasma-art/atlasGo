@@ -15,7 +15,6 @@ class CaracteristiqueRequest extends FormRequest
 
     public function rules(): array
     {
-        // استخراج معرف الكاركتيرستيك الحالي في حالة التعديل (Update) لكي لا يتعارض مع نفسه
         $caracteristiqueId = $this->route('caracteristique')?->id ?? $this->route('id');
 
         return [

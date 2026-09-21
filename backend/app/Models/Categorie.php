@@ -8,9 +8,9 @@ class Categorie extends Model
 {
     protected $fillable = [
         'nom'];
-    public function activites()
+
+    public function destination()
     {
-        return $this->hasMany(Activite::class);
+        return $this->belongsTo(Destination::class);
     }
-    //
 }

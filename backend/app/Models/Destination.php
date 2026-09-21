@@ -12,10 +12,7 @@ protected $fillable = [
      'ville',
      'province',
      'image'];
-public function activites()
-    {
-        return $this->hasMany(Activite::class);
-    }
+
     public function auberges()
     {
         return $this->hasMany(Auberge::class);
@@ -29,5 +26,8 @@ public function favorites()
 {
     return $this->hasMany(Favorite::class);
 }
-//
+public function users()
+    {
+        return $this->belongsToMany(User::class, 'favorites', 'destination_id', 'user_id');
+    }
 }

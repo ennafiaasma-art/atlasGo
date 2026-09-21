@@ -44,4 +44,15 @@ class FavoriteController extends Controller
             ], 201);
         }
     }
+
+
+    public function getAdminFavorites()
+    {
+        $destinations = \App\Models\Destination::with('users')->has('users')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $destinations
+        ]);
+    }
 }

@@ -18,7 +18,6 @@ return new class extends Migration
         $table->integer('nb_personne')->default(1);
         $table->string('statut')->default('en_attente');
         $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-        $table->foreignId('activite_id')->nullable()->constrained('activites')->onDelete('cascade');
         $table->foreignId('chambre_id')->nullable()->constrained('chambres')->onDelete('cascade');
         $table->foreignId('auberge_id')->nullable()->constrained('auberges')->onDelete('cascade');
             $table->timestamps();
