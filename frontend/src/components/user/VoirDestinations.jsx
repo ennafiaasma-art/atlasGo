@@ -96,15 +96,22 @@ export default function VoirDestinations() {
     }
   };
 
-  // Fonction pour ouvrir le modal de réservation et charger uniquement les chambres disponibles
+  // Fonction pour ouvrir le modal de réservation et charger uniquement les chambres disponibles selon les dates
   const handleOpenReservationModal = async () => {
     setShowReservationModal(true);
     setLoadingChambres(true);
     setSuccessMessage('');
     try {
       const token = localStorage.getItem('token');
+      
+      // Nsifto les dates m3a la requête bach l'backend yfiltrer lina chambres lli mreserviyin f dak la période
+      const params = {};
+      if (reservationData.date_debut) params.date_debut = reservationData.date_debut;
+      if (reservationData.date_fin) params.date_fin = reservationData.date_fin;
+
       const response = await axios.get(`${API_BASE_URL}/auberges/${selectedAubergeForDetails.id}/chambres`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: params
       });
       
       const data = response.data?.chambres || response.data?.data || response.data;
@@ -115,12 +122,48 @@ export default function VoirDestinations() {
       // Sélectionner par défaut la première chambre disponible s'il y en a
       if (list.length > 0) {
         setReservationData(prev => ({ ...prev, chambre_id: list[0].id }));
+      } else {
+        setReservationData(prev => ({ ...prev, chambre_id: '' }));
       }
     } catch (err) {
       console.error("Erreur chargement chambres:", err);
       setChambresAuberge([]);
     } finally {
       setLoadingChambres(false);
+    }
+  };
+
+  // Mettre à jour les chambres disponibles automatiquement ila tbdlo les dates
+  const handleDateChange = async (field, value) => {
+    const updatedData = { ...reservationData, [field]: value };
+    setReservationData(updatedData);
+
+    if (updatedData.date_debut && updatedData.date_fin) {
+      setLoadingChambres(true);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/auberges/${selectedAubergeForDetails.id}/chambres`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            date_debut: updatedData.date_debut,
+            date_fin: updatedData.date_fin
+          }
+        });
+        
+        const data = response.data?.chambres || response.data?.data || response.data;
+        const list = Array.isArray(data) ? data : [];
+        setChambresAuberge(list);
+
+        if (list.length > 0) {
+          setReservationData(prev => ({ ...prev, chambre_id: list[0].id }));
+        } else {
+          setReservationData(prev => ({ ...prev, chambre_id: '' }));
+        }
+      } catch (err) {
+        console.error("Erreurfiltrage chambres:", err);
+      } finally {
+        setLoadingChambres(false);
+      }
     }
   };
 
@@ -258,6 +301,28 @@ export default function VoirDestinations() {
               ) : (
                 <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
                   
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Date de début</label>
+                    <input 
+                      type="date" 
+                      required
+                      value={reservationData.date_debut}
+                      onChange={(e) => handleDateChange('date_debut', e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Date de fin</label>
+                    <input 
+                      type="date" 
+                      required
+                      value={reservationData.date_fin}
+                      onChange={(e) => handleDateChange('date_fin', e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
+                    />
+                  </div>
+
                   {/* Sélection de la chambre disponible */}
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Choisir une chambre disponible</label>
@@ -265,7 +330,7 @@ export default function VoirDestinations() {
                       <p className="text-slate-400">Chargement des chambres...</p>
                     ) : chambresAuberge.length === 0 ? (
                       <p className="text-red-500 font-semibold bg-red-50 p-3 rounded-xl">
-                        Désolé, aucune chambre n'est disponible actuellement.
+                        Désolé, aucune chambre n'est disponible pour cette période.
                       </p>
                     ) : (
                       <select
@@ -284,26 +349,6 @@ export default function VoirDestinations() {
                     )}
                   </div>
 
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Date de début</label>
-                    <input 
-                      type="date" 
-                      required
-                      value={reservationData.date_debut}
-                      onChange={(e) => setReservationData({ ...reservationData, date_debut: e.target.value })}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Date de fin</label>
-                    <input 
-                      type="date" 
-                      required
-                      value={reservationData.date_fin}
-                      onChange={(e) => setReservationData({ ...reservationData, date_fin: e.target.value })}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
-                    />
-                  </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nombre de personnes</label>
                     <input 
