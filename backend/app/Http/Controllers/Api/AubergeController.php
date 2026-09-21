@@ -8,7 +8,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 
+use App\Http\Requests\ChambreRequest;
 use App\Models\Auberge;
+use App\Models\Chambre;
 
 use App\Http\Requests\AubergeRequest;
 
@@ -157,5 +159,46 @@ $auberge = Auberge::findOrFail($id);
         ], 200);
 
             }
+
+            public function getAvailableChambres($id)
+    {
+        $auberge = Auberge::findOrFail($id);
+
+        $chambres = $auberge->chambres()->where('statut', 'disponible')->get();
+
+        return response()->json([
+            'chambres' => $chambres
+        ], 200);
+    }
+
+
+
+
+
+
+public function getChambresDisponibles(ChambreRequest $request, $aubergeId)
+{
+    $chambres = Chambre::where('auberge_id', $aubergeId)
+        ->whereDoesntHave('reservations', function ($query) use ($request) {
+            if ($request->has(['date_debut', 'date_fin'])) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereBetween('date_debut', [$request->date_debut, $request->date_fin])
+                      ->orWhereBetween('date_fin', [$request->date_debut, $request->date_fin])
+                      ->orWhere(function ($sub) use ($request) {
+                          $sub->where('date_debut', '<=', $request->date_debut)
+                              ->where('date_fin', '>=', $request->date_fin);
+                      });
+                });
+            } else {
+                $query->where('date_fin', '>=', now());
+            }
+        })
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'chambres' => $chambres
+    ]);
+}
 
 }

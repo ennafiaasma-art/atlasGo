@@ -18,10 +18,17 @@ export default function VoirDestinations() {
   const [aubergesDestination, setAubergesDestination] = useState([]);
   const [loadingAuberges, setLoadingAuberges] = useState(false);
 
-  // États pour les détails d'une auberge et le système de réservation
+  // États pour les détails d'une auberge, les chambres disponibles et le système de réservation
   const [selectedAubergeForDetails, setSelectedAubergeForDetails] = useState(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [reservationData, setReservationData] = useState({ date_debut: '', date_fin: '', nb_personnes: 1 });
+  const [chambresAuberge, setChambresAuberge] = useState([]);
+  const [loadingChambres, setLoadingChambres] = useState(false);
+  const [reservationData, setReservationData] = useState({ 
+    chambre_id: '', 
+    date_debut: '', 
+    date_fin: '', 
+    nb_personne: 1 
+  });
   const [successMessage, setSuccessMessage] = useState('');
 
   // Charger les destinations et les favoris au premier rendu du composant
@@ -41,7 +48,6 @@ export default function VoirDestinations() {
         ...(isSearching && { params: { ville: search } })
       };
 
-      // Récupération simultanée des destinations et des favoris pour optimiser l'affichage
       const [destResponse, favResponse] = await Promise.all([
         axios.get(url, config),
         axios.get(`${API_BASE_URL}/favorites`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } }))
@@ -50,7 +56,6 @@ export default function VoirDestinations() {
       const list = destResponse.data?.destinations || destResponse.data?.data || (Array.isArray(destResponse.data) ? destResponse.data : []);
       setDestinations(list);
 
-      // Extraction des IDs des destinations favorites pour marquer les cœurs
       const favsData = favResponse.data?.data || favResponse.data || [];
       const favIds = favsData.map(fav => fav.id || fav.destination_id);
       setFavoriteIds(favIds);
@@ -91,7 +96,35 @@ export default function VoirDestinations() {
     }
   };
 
-  // Fonctions utilitaires pour s'adapter aux différentes structures de données de l'API
+  // Fonction pour ouvrir le modal de réservation et charger uniquement les chambres disponibles
+  const handleOpenReservationModal = async () => {
+    setShowReservationModal(true);
+    setLoadingChambres(true);
+    setSuccessMessage('');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/auberges/${selectedAubergeForDetails.id}/chambres`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const data = response.data?.chambres || response.data?.data || response.data;
+      const list = Array.isArray(data) ? data : [];
+
+      setChambresAuberge(list);
+      
+      // Sélectionner par défaut la première chambre disponible s'il y en a
+      if (list.length > 0) {
+        setReservationData(prev => ({ ...prev, chambre_id: list[0].id }));
+      }
+    } catch (err) {
+      console.error("Erreur chargement chambres:", err);
+      setChambresAuberge([]);
+    } finally {
+      setLoadingChambres(false);
+    }
+  };
+
+  // Fonctions utilitaires
   const getAubergeName = (aub) => aub?.nom || aub?.nom_auberge || aub?.title || 'Auberge sans nom';
   const getAubergeVille = (aub) => aub?.ville || aub?.adresse || aub?.emplacement || aub?.localisation || selectedDestination?.ville || selectedDestination?.nom_destination || 'Azilal';
   const getAubergePrix = (aub) => aub?.prix || aub?.prix_par_nuit || aub?.tarif || null;
@@ -103,14 +136,12 @@ export default function VoirDestinations() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const chambreId = selectedAubergeForDetails.chambres?.[0]?.id || 1;
       
       const payload = {
-        chambre_id: chambreId,
+        chambre_id: reservationData.chambre_id,
         date_debut: reservationData.date_debut,
         date_fin: reservationData.date_fin,
-        nb_personne: Number(reservationData.nb_personnes || 1),
-        statut: 'en attente'
+        nb_personne: Number(reservationData.nb_personne || 1),
       };
 
       await axios.post(`${API_BASE_URL}/reservations`, payload, {
@@ -133,7 +164,6 @@ export default function VoirDestinations() {
     }
   };
 
-  // Générer l'URL correcte de l'image (locale storage ou lien externe)
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=800&q=80';
     return imagePath.startsWith('http') ? imagePath : `http://127.0.0.1:8000/storage/${imagePath}`;
@@ -204,7 +234,7 @@ export default function VoirDestinations() {
 
             <div className="pt-4 border-t border-slate-100 flex items-center gap-4">
               <button
-                onClick={() => setShowReservationModal(true)}
+                onClick={handleOpenReservationModal}
                 className="w-full sm:w-auto flex-1 py-3 bg-[#215234] hover:bg-[#1a4129] text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
               >
                 <Calendar className="w-4 h-4" />
@@ -214,7 +244,7 @@ export default function VoirDestinations() {
           </div>
         </div>
 
-        {/* Modal de Réservation Responsive */}
+        {/* Modal de Réservation Responsive avec sélection de chambres disponibles */}
         {showReservationModal && (
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
@@ -227,6 +257,33 @@ export default function VoirDestinations() {
                 </div>
               ) : (
                 <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
+                  
+                  {/* Sélection de la chambre disponible */}
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Choisir une chambre disponible</label>
+                    {loadingChambres ? (
+                      <p className="text-slate-400">Chargement des chambres...</p>
+                    ) : chambresAuberge.length === 0 ? (
+                      <p className="text-red-500 font-semibold bg-red-50 p-3 rounded-xl">
+                        Désolé, aucune chambre n'est disponible actuellement.
+                      </p>
+                    ) : (
+                      <select
+                        required
+                        value={reservationData.chambre_id}
+                        onChange={(e) => setReservationData({ ...reservationData, chambre_id: e.target.value })}
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
+                      >
+                        <option value="">-- Sélectionnez une chambre --</option>
+                        {chambresAuberge.map((ch) => (
+                          <option key={ch.id} value={ch.id}>
+                            Chambre N° {ch.numero || ch.id} - {ch.type || 'Standard'} ({ch.prix || prix} DH)
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Date de début</label>
                     <input 
@@ -253,8 +310,8 @@ export default function VoirDestinations() {
                       type="number" 
                       min="1" 
                       required
-                      value={reservationData.nb_personnes}
-                      onChange={(e) => setReservationData({ ...reservationData, nb_personnes: e.target.value })}
+                      value={reservationData.nb_personne}
+                      onChange={(e) => setReservationData({ ...reservationData, nb_personne: e.target.value })}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20"
                     />
                   </div>
@@ -262,7 +319,8 @@ export default function VoirDestinations() {
                   <div className="flex gap-2 pt-2">
                     <button 
                       type="submit" 
-                      className="flex-1 py-3 bg-[#215234] text-white font-bold rounded-xl hover:bg-[#1a4129] transition"
+                      disabled={chambresAuberge.length === 0}
+                      className="flex-1 py-3 bg-[#215234] text-white font-bold rounded-xl hover:bg-[#1a4129] transition disabled:opacity-50"
                     >
                       Confirmer
                     </button>
@@ -385,7 +443,6 @@ export default function VoirDestinations() {
   // 3. VUE PRINCIPALE DE LA LISTE DES DESTINATIONS (AVEC RECHERCHE ET RESPONSIVE GRID)
   return (
     <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
-      {/* En-tête et Barre de recherche Responsive */}
       <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Destinations</h2>
@@ -424,7 +481,6 @@ export default function VoirDestinations() {
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                   
-                  {/* Bouton Favori dynamique : reste visible et synchronisé */}
                   <FavoriteButton 
                     destinationId={dest.id} 
                     initialIsFavorite={favoriteIds.includes(dest.id)} 

@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
 
+Route::get('/auberges/{id}/chambres', [AubergeController::class, 'getAvailableChambres']);
     // Gestion des Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites', [FavoriteController::class, 'store']);
@@ -68,7 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // CRUD Destinations
         Route::apiResource('destinations', DestinationController::class)->except(['index', 'show']);
 
-        // CRUD Catégories & Activités
+        // CRUD Catégories
         Route::apiResource('categories', CategorieController::class)->except(['index', 'show']);
 
         // Gestion des Auberges (Admin)

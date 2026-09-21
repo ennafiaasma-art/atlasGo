@@ -30,10 +30,13 @@ const DestinationsAdmin = () => {
   // Helper Function: Formatting Storage URLs from Laravel
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/150';
+    
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
+    
     const cleanPath = imagePath.replace(/^(public\/|storage\/|\/)/, '');
+    
     return `http://127.0.0.1:8000/storage/${cleanPath}`;
   };
 

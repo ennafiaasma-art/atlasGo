@@ -22,11 +22,14 @@ class DestinationRequest extends FormRequest
      */
     public function rules(): array
     {
+$destinationParam = $this->route('destination');
+$destinationId = is_object($destinationParam) ? $destinationParam->id : $destinationParam;
         return [
-            'nom' => 'required|string|max:255',
+            'nom' => 'required|string|max:255|unique:destinations,nom,' . $destinationId,
             'description' => 'nullable|string',
             'ville' => 'required|string|max:255',
             'province' => 'required|string|max:255',
+
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }

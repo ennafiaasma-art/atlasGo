@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Storage;
 
 class DestinationController extends Controller
 {
-    
+
     public function index()
     {
-        return response()->json(Destination::with(['activites', 'auberges'])->get(), 200);
+        return response()->json(Destination::with([ 'auberges'])->get(), 200);
     }
 
 
@@ -34,7 +34,7 @@ class DestinationController extends Controller
 
     public function show($id)
     {
-        return response()->json(Destination::with(['activites', 'auberges'])->findOrFail($id), 200);
+        return response()->json(Destination::with(['auberges'])->findOrFail($id), 200);
     }
 
 
@@ -80,7 +80,7 @@ class DestinationController extends Controller
             return $query->where('ville', 'LIKE', '%' . $ville . '%');
         })
         ->when($category, function ($query) use ($category) {
-            return $query->where('category', 'LIKE', '%' . $category . '%'); // تصحيح خطأ إملائي caterory -> category
+            return $query->where('category', 'LIKE', '%' . $category . '%'); 
         })
         ->get();
 

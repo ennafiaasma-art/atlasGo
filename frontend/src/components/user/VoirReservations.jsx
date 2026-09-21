@@ -28,18 +28,15 @@ export default function VoirReservations() {
     fetchReservations();
   }, []);
 
-  // Fonction dyal Annulation
   const handleCancelReservation = async (id) => {
     if (!window.confirm("Wakha t-annuli had la réservation?")) return;
 
     const token = localStorage.getItem('token');
     try {
-      // Ila kan route dyal cancellation kay3ayet l DELETE wla PUT (ghaliban DELETE /api/reservations/{id})
       await axios.delete(`${API_BASE_URL}/reservations/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Mni t-supprimat wla t-annulat men database, nahyiwaha mn state bach tban mscanisya f l'écran f'l-hal
       setReservations(reservations.filter((res) => res.id !== id));
     } catch (err) {
       console.error("Erreur annulation reservation", err);
@@ -67,7 +64,7 @@ export default function VoirReservations() {
       {reservations.length === 0 ? (
         <div className="bg-white p-10 rounded-2xl border border-emerald-100 text-center text-xs text-slate-400 shadow-xs space-y-2">
           <CalendarDays className="w-8 h-8 mx-auto text-slate-300" />
-          <p>Ma 3andk hata chi réservation 7d l'an.</p>
+          <p>pas de reservation pour le moment.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
