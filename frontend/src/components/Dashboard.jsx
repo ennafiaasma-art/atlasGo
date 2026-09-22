@@ -1,77 +1,111 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Search, MapPin, ChevronDown, Heart, User, ArrowRight, Star,
+  Search, MapPin, ChevronDown, Heart, User, Star,
   Compass, Trees, Building2, Landmark, Utensils, Users, Sparkles,
-  ChevronLeft, Loader
+  Loader, BedDouble
 } from 'lucide-react';
+import VoirReservations from './user/VoirReservations';
+import MesFavoris from './user/MesFavoris';
+import Profile from './user/Profile';
 
 // 1. Navbar
-const Navbar = () => (
-  <nav className="flex items-center justify-between px-8 py-3 bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div className="flex items-center gap-3 cursor-pointer">
-      <div className="w-10 h-10 rounded-lg bg-emerald-800 flex items-center justify-center text-white font-bold text-xl shadow-sm">
-        🌲
+const Navbar = () => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    window.location.href = '/login';
+  };
+
+  return (
+    <nav className="flex items-center justify-between px-8 py-3 bg-white border-b border-gray-100 sticky top-0 z-50">
+      <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        {/* Logo Officiel Région Béni Mellal-Khénifra SVG */}
+        <div className="w-11 h-11 flex items-center justify-center">
+          <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-800" fill="currentColor">
+            {/* Jbal (Mountains) */}
+            <path d="M50 15 L85 80 L15 80 Z" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
+            <path d="M50 35 L70 75 L30 75 Z" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.4" />
+            <path d="M15 80 Q 50 70 85 80" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+            
+            {/* Chjar (Trees representation inside logo) */}
+            <circle cx="35" cy="65" r="4" fill="#047857" />
+            <circle cx="68" cy="68" r="3" fill="#047857" />
+          </svg>
+        </div>
+        
+        <div className="flex flex-col leading-tight">
+          <span className="font-extrabold text-lg text-emerald-950 tracking-tight">Béni Mellal</span>
+          <span className="font-semibold text-sm text-emerald-600">Khénifra</span>
+        </div>
       </div>
-      <div className="flex flex-col leading-tight">
-        <span className="font-extrabold text-lg text-emerald-950 tracking-tight">Béni Mellal</span>
-        <span className="font-semibold text-sm text-emerald-600">Khénifra</span>
+
+      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <a href="#accueil" className="hover:text-emerald-700 transition">Accueil</a>
+        <a href="#destinations" className="hover:text-emerald-700 transition">Destinations</a>
+        <a href="#hebergements" className="hover:text-emerald-700 transition">Hébergements</a>
+        <a href="#propos" className="hover:text-emerald-700 transition">À propos</a>
       </div>
-    </div>
 
-    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-      <a href="#accueil" className="text-emerald-700 font-bold border-b-2 border-emerald-700 pb-1">Accueil</a>
-      <a href="#decouvrir" className="hover:text-emerald-700 transition">Découvrir</a>
-      <a href="#activites" className="hover:text-emerald-700 transition">Activités</a>
-      <a href="#hebergements" className="hover:text-emerald-700 transition">Hébergements</a>
-      <a href="#evenements" className="hover:text-emerald-700 transition">Événements</a>
-      <a href="#blog" className="hover:text-emerald-700 transition">Blog</a>
-      <a href="#propos" className="hover:text-emerald-700 transition">À propos</a>
-    </div>
+      <div className="flex items-center gap-3">
+        {token ? (
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/user/MesFavoris" 
+              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition flex items-center gap-1.5"
+            >
+              <Heart className="w-4 h-4 text-emerald-600" />
+              Favoris
+            </Link>
 
-    <div className="flex items-center gap-4">
-      <button className="p-2 text-gray-600 hover:text-emerald-700 transition">
-        <Heart className="w-5 h-5" />
-      </button>
-      <button className="p-2 text-gray-600 hover:text-emerald-700 transition">
-        <User className="w-5 h-5" />
-      </button>
-      <Link to="/login" className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition shadow-sm">
-        Se connecter
-      </Link>
-    </div>
-  </nav>
-);
+            <Link 
+              to="/user/VoirReservations" 
+              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition flex items-center gap-1.5"
+            >
+              <BedDouble className="w-4 h-4 text-emerald-600" />
+              Réservations
+            </Link>
 
+            <Link 
+              to="/user/Profile" 
+              className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 py-2 rounded-lg transition shadow-sm"
+            >
+              <User className="w-4 h-4" />
+              <span>{user?.name || 'Mon Profil'}</span>
+            </Link>
+
+            <button 
+              onClick={handleLogout}
+              className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 transition cursor-pointer"
+              title="Se déconnecter"
+            >
+              Déconnexion
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm px-3 py-2 rounded-lg transition shadow-sm">
+            Se connecter
+          </Link>
+        )}
+      </div>
+    </nav>
+  );
+};
+
+// 2. Hero Section
 const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
   const slides = [
-    {
-      img: '/images/bm.jpg',
-      info1: "Aïn Asserdoun",
-      info1Sub: "Béni Mellal",
-      info2: "Source d'eau",
-      info2Sub: "Nature & Jardin",
-      info3: "Meilleure période",
-      info3Sub: "Toute l'année"
-    },
-    {
-      img: '/images/bin.jpg',
-      info1: "Lac Bin El Ouidane",
-      info1Sub: "Province d'Azilal",
-      info2: "Activités",
-      info2Sub: "Kayak & Nautisme",
-      info3: "Meilleure période",
-      info3Sub: "Mai - Septembre"
-    },
-    {
-      img: '/images/oh.jpg',
-      info1: "Cascades d'Ouzoud",
-      info1Sub: "Province d'Azilal",
-      info2: "Hauteur",
-      info2Sub: "110 mètres",
-      info3: "Meilleure période",
-      info3Sub: "Mars - Juin"
-    }
+    { img: '/images/bm.jpg', info1: "Aïn Asserdoun", info1Sub: "Béni Mellal" },
+    { img: '/images/bin.jpg', info1: "Lac Bin El Ouidane", info1Sub: "Province d'Azilal" },
+    { img: '/images/oh.jpg', info1: "Cascades d'Ouzoud", info1Sub: "Province d'Azilal" }
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -108,13 +142,10 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
   };
 
   return (
-    <div className="relative px-6 lg:px-12 pt-4">
-      {/* Banner */}
+    <div id="accueil" className="relative px-6 lg:px-12 pt-4">
       <div 
         className="relative h-[420px] rounded-3xl overflow-hidden shadow-lg bg-cover bg-center transition-all duration-700 ease-in-out flex items-center px-8 lg:px-16 text-white"
-        style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25)), url('${slides[currentIndex].img}')` 
-        }}
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25)), url('${slides[currentIndex].img}')` }}
       >
         <div className="max-w-xl z-10">
           <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
@@ -126,7 +157,7 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
         </div>
       </div>
 
-      {/* Search Bar Form */}
+      {/* Barre de recherche */}
       <form onSubmit={handleSearchSubmit} className="relative -mt-10 max-w-5xl mx-auto bg-white p-4 lg:p-6 rounded-2xl shadow-xl border border-gray-100 z-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
@@ -168,7 +199,7 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
         </div>
       </form>
 
-      {/* Filter Categories */}
+      {/* Catégories filter buttons */}
       <div className="flex items-center justify-center gap-4 lg:gap-8 my-8 overflow-x-auto pb-2">
         {categories.map((cat, i) => {
           const IconComponent = cat.icon;
@@ -191,82 +222,183 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
   );
 };
 
-// 3. Destinations Dynamic List
-const PopularDestinations = ({ destinations, loading }) => {
-  return (
-    <section className="px-6 lg:px-12 my-10 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-extrabold text-emerald-950 flex items-center gap-2">
-          <span className="text-emerald-600">|</span> Destinations disponibles
-        </h2>
-      </div>
+// 3. Destinations Grid
+const PopularDestinations = ({ destinations, loading }) => (
+  <section id="destinations" className="px-6 lg:px-12 my-10 max-w-7xl mx-auto scroll-mt-20">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-extrabold text-emerald-950 flex items-center gap-2">
+        <span className="text-emerald-600">|</span> Destinations disponibles
+      </h2>
+    </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader className="w-8 h-8 text-emerald-700 animate-spin" />
-        </div>
-      ) : destinations.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {destinations.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition group cursor-pointer">
+    {loading ? (
+      <div className="flex justify-center py-12">
+        <Loader className="w-8 h-8 text-emerald-700 animate-spin" />
+      </div>
+    ) : destinations.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {destinations.map((item) => (
+          <Link 
+            to={`/destinations/${item.id}`} 
+            key={item.id} 
+            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition group cursor-pointer block relative"
+          >
+            <div className="relative h-40 overflow-hidden bg-gray-100">
+              <img 
+                src={item.image || item.img || "/images/bm.jpg"} 
+                alt={item.title || item.nom} 
+                className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
+              />
+              <Link 
+                to={localStorage.getItem('token') ? "/dashboard" : "/login"}
+                onClick={(e) => { e.stopPropagation(); }} 
+                className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-gray-600 hover:text-red-500 hover:bg-white transition cursor-pointer shadow-sm z-10"
+                title="Ajouter aux favoris"
+              >
+                <Heart className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="p-4">
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">
+                {item.category || item.categorie?.nom || 'Destination'}
+              </span>
+              <h3 className="font-bold text-gray-800 text-base mt-2 truncate">{item.title || item.nom || item.nom_destination}</h3>
+              <div className="flex justify-between items-center mt-3 text-xs">
+                <span className="text-gray-500 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  {item.ville}
+                </span>
+                <span className="font-bold text-amber-500 flex items-center gap-0.5">
+                  <Star className="w-3 h-3 fill-amber-400 border-none" /> {item.rating || '4.5'}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
+        Aucune destination trouvée.
+      </div>
+    )}
+  </section>
+);
+
+// 4. Hébergements / Auberges Grid
+const PopularAuberges = ({ auberges, loading }) => (
+  <section id="hebergements" className="px-6 lg:px-12 my-10 max-w-7xl mx-auto scroll-mt-20">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-extrabold text-emerald-950 flex items-center gap-2">
+        <span className="text-emerald-600">|</span> Hébergements & Auberges recommandés
+      </h2>
+    </div>
+
+    {loading ? (
+      <div className="flex justify-center py-12">
+        <Loader className="w-8 h-8 text-emerald-700 animate-spin" />
+      </div>
+    ) : auberges.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {auberges.map((item) => (
+          <div 
+            key={item.id} 
+            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition group cursor-pointer flex flex-col justify-between"
+          >
+            <div>
               <div className="relative h-40 overflow-hidden bg-gray-100">
                 <img 
-                  src={item.image || item.img || "/images/bm.jpg"} 
-                  alt={item.title || item.nom} 
+                  src={item.image || item.photo || "/images/bm.jpg"} 
+                  alt={item.nom} 
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
                 />
-                <button className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-gray-600 hover:text-red-500 transition">
-                  <Heart className="w-4 h-4" />
-                </button>
+                <span className="absolute top-2 left-2 px-2.5 py-1 bg-emerald-700/90 text-white text-[10px] font-bold rounded-lg backdrop-blur-xs flex items-center gap-1">
+                  <BedDouble className="w-3 h-3" /> Auberge
+                </span>
               </div>
               <div className="p-4">
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">
-                  {item.category || 'Destination'}
-                </span>
-                <h3 className="font-bold text-gray-800 text-base mt-2 truncate">{item.title || item.nom || item.ville}</h3>
+                <h3 className="font-bold text-gray-800 text-base truncate">{item.nom}</h3>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-1">{item.description || 'Séjour chaleureux au cœur de l\'Atlas'}</p>
                 <div className="flex justify-between items-center mt-3 text-xs">
                   <span className="text-gray-500 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                    {item.ville}
+                    {item.ville || 'Atlas'}
                   </span>
-                  <span className="font-bold text-amber-500 flex items-center gap-0.5">
-                    <Star className="w-3 h-3 fill-amber-400 border-none" /> {item.rating || '4.5'}
+                  <span className="font-extrabold text-emerald-700">
+                    {item.prix ? `${item.prix} DH / nuit` : 'Prix sur demande'}
                   </span>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
-          Aucune destination ne correspond à votre recherche.
-        </div>
-      )}
-    </section>
-  );
-};
+            
+            <div className="p-4 pt-0">
+              <Link 
+                to="/login" 
+                className="w-full bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 font-semibold py-2 rounded-xl text-xs transition duration-200 block text-center"
+              >
+                Voir détails / Réserver
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
+        Aucun hébergement ou auberge disponible pour le moment.
+      </div>
+    )}
+  </section>
+);
 
-// 4. Component  orincipal Fetch
+// 5. Section À propos
+const AboutSection = () => (
+  <section id="propos" className="px-6 lg:px-12 my-16 max-w-7xl mx-auto scroll-mt-20">
+    <div className="bg-emerald-700 rounded-3xl p-8 lg:p-12 shadow-sm border border-gray-100 text-center">
+      <h2 className="text-2xl lg:text-3xl font-extrabold text-emerald-100 mb-4">À propos d'AtlasGo</h2>
+      <p className="text-white leading-relaxed text-sm lg:text-base max-w-3xl mx-auto">
+        AtlasGo est votre passerelle incontournable pour découvrir les trésors cachés de la région Béni Mellal-Khénifra. 
+        Notre mission est de promouvoir le tourisme local, de valoriser le patrimoine culturel et naturel exceptionnel de l'Atlas, 
+        et de faciliter vos réservations dans les meilleures auberges et hébergements de la région.
+      </p>
+    </div>
+  </section>
+);
+
+// 6. Principal Dashboard Component
 const Dashboard = () => {
   const [destinations, setDestinations] = useState([]);
+  const [auberges, setAuberges] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  const fetchDestinations = async (filters = {}) => {
+  const fetchData = async (filters = {}) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (filters.ville) params.append('ville', filters.ville);
       if (filters.category) params.append('category', filters.category);
 
-      const response = await fetch(`http://127.0.0.1:8000/api/destination/recerch?${params.toString()}`, {
+      let destUrl = `http://127.0.0.1:8000/api/destinations`;
+      if (filters.ville || filters.category) {
+        destUrl = `http://127.0.0.1:8000/api/destinations/recherch?${params.toString()}`;
+      }
+
+      const destResponse = await fetch(destUrl, {
         headers: { 'Accept': 'application/json' }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDestinations(data);
+      
+      if (destResponse.ok) {
+        const data = await destResponse.json();
+        setDestinations(Array.isArray(data) ? data : data.data || data.destinations || []);
       }
+
+      const aubResponse = await fetch(`http://127.0.0.1:8000/api/auberges`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (aubResponse.ok) {
+        const aubData = await aubResponse.json();
+        setAuberges(Array.isArray(aubData) ? aubData : aubData.data || aubData.auberges || []);
+      }
+
     } catch (error) {
       console.error("Erreur de connexion API:", error);
     } finally {
@@ -275,18 +407,26 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchDestinations();
+    fetchData();
   }, []);
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-gray-800">
       <Navbar />
       <HeroSection 
-        onSearch={fetchDestinations} 
+        onSearch={fetchData} 
         selectedCategory={selectedCategory} 
         setSelectedCategory={setSelectedCategory} 
       />
+      
+      {/* Destinations */}
       <PopularDestinations destinations={destinations} loading={loading} />
+
+      {/* Hébergements */}
+      <PopularAuberges auberges={auberges} loading={loading} />
+
+      {/* À propos */}
+      <AboutSection />
     </div>
   );
 };

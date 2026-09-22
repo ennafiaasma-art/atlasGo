@@ -21,7 +21,6 @@ export default function MesFavoris() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // على حسب الهيكلة لي كترجع من الـ API (واش array مباشرة ولا داخل data)
       const data = response.data.favorites || response.data.data || response.data;
       setFavoris(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -32,7 +31,6 @@ export default function MesFavoris() {
   };
 
   const handleRemoveFromList = (destinationId) => {
-    // إزالة الوجهة من القائمة مباشرة في الواجهة ملي كيتعاود الضغط على الزر
     setFavoris(favoris.filter(item => (item.destination?.id || item.id) !== destinationId));
   };
 
@@ -52,23 +50,22 @@ export default function MesFavoris() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-4 px-4 py-4">
           Mes Destinations Favorites ❤️
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">Retrouvez tous les endroits que vous avez enregistrés</p>
+        <p className="text-xs text-slate-500 mt-0.5 px-4">Retrouvez tous les endroits que vous avez enregistrés</p>
       </div>
 
       {favoris.length === 0 ? (
-        <div className="bg-white p-10 rounded-3xl border border-emerald-100 text-center space-y-3 shadow-xs">
+        <div className="bg-white p-10 rounded-3xl border border-emerald-100 text-center space-y-3 shadow-xs ">
           <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <Heart className="w-6 h-6" />
           </div>
           <p className="text-xs text-slate-600 font-medium">Vous n'avez encore ajouté aucune destination à vos favoris.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-9">
           {favoris.map((fav) => {
-            // التعامل مع العلاقة واش كترجع Destination مباشرة ولا عبر object
             const dest = fav.destination || fav;
             return (
               <div 

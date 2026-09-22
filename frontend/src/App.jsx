@@ -3,11 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Dashboard from './components/Dashboard';
 import Login from './auth/Login';
 import Register from './auth/Register';
-import UserDashboard from './components/user/UserDashboard';
 import AdminDashboard from './components/admin/AdminDashboard'; 
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DestinationsAdmin from './components/admin/DestinationsAdmin';
-import Home from './components/user/Home';
+import VoirDestinations from './components/user/VoirDestinations';
+
+import MesFavoris from './components/user/MesFavoris';
+import VoirReservations from './components/user/VoirReservations';
+import Profile from './components/user/Profile';
 
 function App() {
   return (
@@ -16,13 +19,16 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
- {/* user */}
+
+        {/* user routes */}
         <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-          <Route path="/Home" element={<Home />} />
+          <Route path="/destinations/:id" element={<VoirDestinations />} />
+          
+          <Route path="/user/MesFavoris" element={<MesFavoris />} />
+          <Route path="/user/VoirReservations" element={<VoirReservations />} />
+          <Route path="/user/Profile" element={<Profile />} />
         </Route>
 
-
-{/* admin */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin/destinations" element={<DestinationsAdmin />} />

@@ -96,7 +96,6 @@ export default function VoirDestinations() {
     }
   };
 
-  // Fonction pour ouvrir le modal de réservation et charger uniquement les chambres disponibles selon les dates
   const handleOpenReservationModal = async () => {
     setShowReservationModal(true);
     setLoadingChambres(true);
@@ -104,7 +103,6 @@ export default function VoirDestinations() {
     try {
       const token = localStorage.getItem('token');
       
-      // Nsifto les dates m3a la requête bach l'backend yfiltrer lina chambres lli mreserviyin f dak la période
       const params = {};
       if (reservationData.date_debut) params.date_debut = reservationData.date_debut;
       if (reservationData.date_fin) params.date_fin = reservationData.date_fin;
@@ -119,7 +117,6 @@ export default function VoirDestinations() {
 
       setChambresAuberge(list);
       
-      // Sélectionner par défaut la première chambre disponible s'il y en a
       if (list.length > 0) {
         setReservationData(prev => ({ ...prev, chambre_id: list[0].id }));
       } else {

@@ -71,18 +71,19 @@ class DestinationController extends Controller
         return response()->json(['message' => 'Destination supprimée avec succès'], 200);
     }
 
-    public function rechercheDestinationParVille(Request $request)
+   public function rechercheDestinationParVille(Request $request)
     {
         $ville = $request->query('ville');
         $category = $request->query('category');
 
-        $destinations = Destination::when($ville, function ($query) use ($ville) {
-            return $query->where('ville', 'LIKE', '%' . $ville . '%');
-        })
-        ->when($category, function ($query) use ($category) {
-            return $query->where('category', 'LIKE', '%' . $category . '%'); 
-        })
-        ->get();
+        $destinations = Destination::with(['auberges']) // Zdna hadi bach tjib m3aha auberges
+            ->when($ville, function ($query) use ($ville) {
+                return $query->where('ville', 'LIKE', '%' . $ville . '%');
+            })
+            ->when($category, function ($query) use ($category) {
+                return $query->where('category', 'LIKE', '%' . $category . '%');
+            })
+            ->get();
 
         return response()->json($destinations, 200);
     }

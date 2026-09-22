@@ -57,17 +57,17 @@ const Login = () => {
           if (role === 'admin') {
             navigate('/admin-dashboard', { replace: true });
           } else {
-            navigate('/Home', { replace: true });
+            navigate('/dashboard', { replace: true });
           }
         } else {
           setError("Token not found");
         }
       } else {
-        setError(data.message || 'Email or password incorrect');
+        setError(data.message || 'Email ou mot de passe incorrect');
       }
     } catch (err) {
       console.error('Erreur de connexion:', err);
-      setError('error en server laravel.');
+      setError('Erreur de connexion au serveur Laravel.');
     } finally {
       setLoading(false);
     }
