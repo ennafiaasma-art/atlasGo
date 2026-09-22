@@ -7,6 +7,7 @@ import UserDashboard from './components/user/UserDashboard';
 import AdminDashboard from './components/admin/AdminDashboard'; 
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DestinationsAdmin from './components/admin/DestinationsAdmin';
+import Home from './components/user/Home';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <Route path="/register" element={<Register />} />
  {/* user */}
         <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-          <Route path="/user-dashboard" element={<UserDashboard />} />
+          <Route path="/Home" element={<Home />} />
         </Route>
 
 

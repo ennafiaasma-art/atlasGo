@@ -57,7 +57,7 @@ const Login = () => {
           if (role === 'admin') {
             navigate('/admin-dashboard', { replace: true });
           } else {
-            navigate('/user-dashboard', { replace: true });
+            navigate('/Home', { replace: true });
           }
         } else {
           setError("Token not found");
