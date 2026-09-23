@@ -76,7 +76,7 @@ class DestinationController extends Controller
         $ville = $request->query('ville');
         $category = $request->query('category');
 
-        $destinations = Destination::with(['auberges']) // Zdna hadi bach tjib m3aha auberges
+        $destinations = Destination::with(['auberges']) 
             ->when($ville, function ($query) use ($ville) {
                 return $query->where('ville', 'LIKE', '%' . $ville . '%');
             })

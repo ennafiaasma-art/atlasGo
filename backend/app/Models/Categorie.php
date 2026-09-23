@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Categorie extends Model
 {
     protected $fillable = [
-        'nom'];
+        'nom',
+        'destination_id' 
+    ];
 
     public function destination()
     {

@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Search, MapPin, ChevronDown, Heart, User, Star,
+  Search, MapPin, ChevronDown, User, Star,
   Compass, Trees, Building2, Landmark, Utensils, Users, Sparkles,
   Loader, BedDouble
 } from 'lucide-react';
-import VoirReservations from './user/VoirReservations';
-import MesFavoris from './user/MesFavoris';
-import Profile from './user/Profile';
 
 // 1. Navbar
 const Navbar = () => {
@@ -31,12 +28,9 @@ const Navbar = () => {
         {/* Logo Officiel Région Béni Mellal-Khénifra SVG */}
         <div className="w-11 h-11 flex items-center justify-center">
           <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-800" fill="currentColor">
-            {/* Jbal (Mountains) */}
             <path d="M50 15 L85 80 L15 80 Z" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
             <path d="M50 35 L70 75 L30 75 Z" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.4" />
             <path d="M15 80 Q 50 70 85 80" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
-            
-            {/* Chjar (Trees representation inside logo) */}
             <circle cx="35" cy="65" r="4" fill="#047857" />
             <circle cx="68" cy="68" r="3" fill="#047857" />
           </svg>
@@ -59,33 +53,15 @@ const Navbar = () => {
         {token ? (
           <div className="flex items-center gap-3">
             <Link 
-              to="/user/MesFavoris" 
-              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition flex items-center gap-1.5"
-            >
-              <Heart className="w-4 h-4 text-emerald-600" />
-              Favoris
-            </Link>
-
-            <Link 
-              to="/user/VoirReservations" 
-              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition flex items-center gap-1.5"
-            >
-              <BedDouble className="w-4 h-4 text-emerald-600" />
-              Réservations
-            </Link>
-
-            <Link 
               to="/user/Profile" 
               className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 py-2 rounded-lg transition shadow-sm"
             >
               <User className="w-4 h-4" />
               <span>{user?.name || 'Mon Profil'}</span>
             </Link>
-
             <button 
               onClick={handleLogout}
               className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 transition cursor-pointer"
-              title="Se déconnecter"
             >
               Déconnexion
             </button>
@@ -144,7 +120,7 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
   return (
     <div id="accueil" className="relative px-6 lg:px-12 pt-4">
       <div 
-        className="relative h-[420px] rounded-3xl overflow-hidden shadow-lg bg-cover bg-center transition-all duration-700 ease-in-out flex items-center px-8 lg:px-16 text-white"
+        className="relative rounded-3xl overflow-hidden shadow-lg bg-cover bg-center transition-all duration-700 ease-in-out flex items-center px-8 lg:px-16 text-white h-80"
         style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25)), url('${slides[currentIndex].img}')` }}
       >
         <div className="max-w-xl z-10">
@@ -187,6 +163,9 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
                 <option value="Aventure">Aventure</option>
                 <option value="Culture">Culture</option>
                 <option value="Patrimoine">Patrimoine</option>
+                <option value="Bien-être">Bien-être</option>
+                <option value="Gastronomie">Gastronomie</option>
+                <option value="Famille">Famille</option>
               </select>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </div>
@@ -245,18 +224,10 @@ const PopularDestinations = ({ destinations, loading }) => (
           >
             <div className="relative h-40 overflow-hidden bg-gray-100">
               <img 
-                src={item.image || item.img || "/images/bm.jpg"} 
+                src={item.image ? `http://127.0.0.1:8000/storage/${item.image}` : (item.img || "/images/bm.jpg")} 
                 alt={item.title || item.nom} 
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
               />
-              <Link 
-                to={localStorage.getItem('token') ? "/dashboard" : "/login"}
-                onClick={(e) => { e.stopPropagation(); }} 
-                className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-gray-600 hover:text-red-500 hover:bg-white transition cursor-pointer shadow-sm z-10"
-                title="Ajouter aux favoris"
-              >
-                <Heart className="w-4 h-4" />
-              </Link>
             </div>
             <div className="p-4">
               <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">
@@ -285,69 +256,82 @@ const PopularDestinations = ({ destinations, loading }) => (
 );
 
 // 4. Hébergements / Auberges Grid
-const PopularAuberges = ({ auberges, loading }) => (
-  <section id="hebergements" className="px-6 lg:px-12 my-10 max-w-7xl mx-auto scroll-mt-20">
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-extrabold text-emerald-950 flex items-center gap-2">
-        <span className="text-emerald-600">|</span> Hébergements & Auberges recommandés
-      </h2>
-    </div>
+const PopularAuberges = ({ auberges, loading }) => {
+  const isConnected = !!localStorage.getItem('token');
 
-    {loading ? (
-      <div className="flex justify-center py-12">
-        <Loader className="w-8 h-8 text-emerald-700 animate-spin" />
+  return (
+    <section id="hebergements" className="px-6 lg:px-12 my-10 max-w-7xl mx-auto scroll-mt-20">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-extrabold text-emerald-950 flex items-center gap-2">
+          <span className="text-emerald-600">|</span> Hébergements & Auberges recommandés
+        </h2>
       </div>
-    ) : auberges.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {auberges.map((item) => (
-          <div 
-            key={item.id} 
-            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition group cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="relative h-40 overflow-hidden bg-gray-100">
-                <img 
-                  src={item.image || item.photo || "/images/bm.jpg"} 
-                  alt={item.nom} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
-                />
-                <span className="absolute top-2 left-2 px-2.5 py-1 bg-emerald-700/90 text-white text-[10px] font-bold rounded-lg backdrop-blur-xs flex items-center gap-1">
-                  <BedDouble className="w-3 h-3" /> Auberge
-                </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-800 text-base truncate">{item.nom}</h3>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-1">{item.description || 'Séjour chaleureux au cœur de l\'Atlas'}</p>
-                <div className="flex justify-between items-center mt-3 text-xs">
-                  <span className="text-gray-500 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                    {item.ville || 'Atlas'}
-                  </span>
-                  <span className="font-extrabold text-emerald-700">
-                    {item.prix ? `${item.prix} DH / nuit` : 'Prix sur demande'}
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader className="w-8 h-8 text-emerald-700 animate-spin" />
+        </div>
+      ) : auberges.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {auberges.map((item) => (
+            <div 
+              key={item.id} 
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition group cursor-pointer flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative h-40 overflow-hidden bg-gray-100">
+                  <img 
+                    src={item.image ? `http://127.0.0.1:8000/storage/${item.image}` : (item.photo || "/images/bm.jpg")} 
+                    alt={item.nom} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
+                  />
+                  <span className="absolute top-2 left-2 px-2.5 py-1 bg-emerald-700/90 text-white text-[10px] font-bold rounded-lg flex items-center gap-1">
+                    <BedDouble className="w-3 h-3" /> Auberge
                   </span>
                 </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-800 text-base truncate">{item.nom}</h3>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">{item.description || "Séjour chaleureux au cœur de l'Atlas"}</p>
+                  <div className="flex justify-between items-center mt-3 text-xs">
+                    <span className="text-gray-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      {item.ville || 'Atlas'}
+                    </span>
+                    <span className="font-extrabold text-emerald-700">
+                      {item.prix ? `${item.prix} DH / nuit` : 'Prix sur demande'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 pt-0">
+                {isConnected ? (
+                  <Link 
+                    to={`/auberges/${item.id}/reserver`} 
+                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 rounded-xl text-xs transition duration-200 block text-center shadow-sm"
+                  >
+                    Réserver maintenant
+                  </Link>
+                ) : (
+                  <Link 
+                    to="/login" 
+                    className="w-full bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 font-semibold py-2 rounded-xl text-xs transition duration-200 block text-center"
+                  >
+                    Se connecter pour réserver
+                  </Link>
+                )}
               </div>
             </div>
-            
-            <div className="p-4 pt-0">
-              <Link 
-                to="/login" 
-                className="w-full bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 font-semibold py-2 rounded-xl text-xs transition duration-200 block text-center"
-              >
-                Voir détails / Réserver
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
-        Aucun hébergement ou auberge disponible pour le moment.
-      </div>
-    )}
-  </section>
-);
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
+          Aucun hébergement ou auberge disponible pour le moment.
+        </div>
+      )}
+    </section>
+  );
+};
 
 // 5. Section À propos
 const AboutSection = () => (

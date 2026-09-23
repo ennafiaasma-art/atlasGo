@@ -10,7 +10,8 @@ import {
   Activity,
   Menu,
   X,
-  User
+  User,
+  Tags
 } from 'lucide-react';
 
 
@@ -21,19 +22,25 @@ import Sidebar from '../Sidebar.jsx';
 import AdminFavoritesSection from './AdminFavoritesSection.jsx'; 
 import AdminProfileSection from './AdminProfileSection.jsx';
 import AdminClientsSection from './AdminClientsSection.jsx';
+import GererCategorie from './GererCategorie.jsx';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('accommodations');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // 1. Zidna 'categories' hna
   const sectionTitles = {
     dashboard: 'Tableau de bord',
     destinations: 'Destinations',
     accommodations: 'Hébergements',
+    categories: 'Gestion des Catégories',
     favoris: 'Favoris',
     users: 'Utilisateurs',
     profile: 'Mon Profil'
   };
+
+  // Ntbéh: ila kan token kay-takhdo men localStorage wla props, passih l GererCategorie (ila kan bdaroura)
+  // Matalan: const token = localStorage.getItem('token');
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800 relative">
@@ -53,30 +60,35 @@ export default function AdminDashboard() {
           {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
-<Sidebar 
-  role="admin"
-  activeSection={activeSection}
-  setActiveSection={setActiveSection}
-  isOpen={isSidebarOpen}
-  onClose={() => setIsSidebarOpen(false)}
-/>
+
+      <Sidebar 
+        role="admin"
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
       {/* Dynamic Page Content */}
       <main className="flex-1 overflow-x-hidden pt-16 lg:pt-0 w-full">
         {activeSection === 'destinations' && <DestinationsSection />}
         {activeSection === 'accommodations' && <AccommodationsSection />}
+        
+        {/* 2. Zidna l-composant d GererCategorie hna */}
+        {activeSection === 'categories' && <GererCategorie token={localStorage.getItem('token')} />}
+        
         {activeSection === 'favoris' && <AdminFavoritesSection />}
         {activeSection === 'users' && <AdminClientsSection />}
-        {activeSection === 'profile' && <AdminProfileSection />}        
-        {/* Sections en cours de développement ou Profile */}
-        {!['destinations', 'accommodations', 'favoris', 'profile', 'users'].includes(activeSection) && (
+        {activeSection === 'profile' && <AdminProfileSection />}         
+        
+        {/* Sections en cours de développement (Zdna 'categories' men l-array bach matbanch liha "en cours de développement") */}
+        {!['destinations', 'accommodations', 'categories', 'favoris', 'profile', 'users'].includes(activeSection) && (
           <div className="p-4 sm:p-8">
             <h1 className="text-lg sm:text-xl font-bold text-slate-900">
               {sectionTitles[activeSection] || 'Section'}
             </h1>
             <p className="text-xs text-slate-400 mt-2">
-              {activeSection === 'profile' 
-                ? 'Gérez vos informations personnelles et paramètres de compte.' 
-                : 'Cette section est en cours de développement.'}
+              Cette section est en cours de développement.
             </p>
           </div>
         )}

@@ -157,7 +157,7 @@ export default function VoirDestinations() {
           setReservationData(prev => ({ ...prev, chambre_id: '' }));
         }
       } catch (err) {
-        console.error("Erreurfiltrage chambres:", err);
+        console.error("Erreur filtrage chambres:", err);
       } finally {
         setLoadingChambres(false);
       }
@@ -221,7 +221,7 @@ export default function VoirDestinations() {
           className="flex items-center gap-2 text-xs font-semibold text-[#215234] bg-emerald-50 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition shadow-xs"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour aux auberges de {selectedDestination.nom_destination || selectedDestination.nom}
+          Retour aux auberges de {selectedDestination?.nom_destination || selectedDestination?.nom || 'la destination'}
         </button>
 
         <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
@@ -297,7 +297,6 @@ export default function VoirDestinations() {
                 </div>
               ) : (
                 <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
-                  
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Date de début</label>
                     <input 

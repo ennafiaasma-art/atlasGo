@@ -61,7 +61,7 @@ export default function VoirReservations() {
       
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 filter blur-[2px] scale-105"
-        style={{ backgroundImage: `url('/images/auberge.jpg')` }} 
+        style={{ backgroundImage: `url('/images/cambre.png')` }} 
       >
         <div className="absolute inset-0  from-emerald-950/80 via-slate-950/70 to-emerald-900/80 backdrop-blur-xs"></div>
       </div>
@@ -72,7 +72,7 @@ export default function VoirReservations() {
         <div className="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
              <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('./user-dashboard')}
               className="flex items-center gap-2 text-xs font-semibold text-white bg-emerald-700 px-4 py-2.5 rounded-xl hover:bg-emerald-800 transition shadow-sm cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />

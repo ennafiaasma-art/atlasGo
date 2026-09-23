@@ -8,11 +8,11 @@ use App\Models\Categorie;
 
 class CategorieController extends Controller
 {
-    public function index()
-    {
-        $categories = Categorie::with('activites')->get();  
-        return response()->json($categories);
-    }
+   public function index()
+{
+    $categories = Categorie::with('destination')->get();
+    return response()->json($categories);
+}
 
     public function store(CategorieRequest $request)
     {
@@ -24,17 +24,7 @@ class CategorieController extends Controller
         ], 201);
     }
 
-    public function update(CategorieRequest $request, $id)
-    {
-        $categorie = Categorie::findOrFail($id);
-
-        $categorie->update($request->validated());
-
-        return response()->json([
-            'message' => 'Catégorie mise à jour avec succès',
-            'categorie' => $categorie
-        ]);
-    }
+ 
 
     public function destroy($id)
     {

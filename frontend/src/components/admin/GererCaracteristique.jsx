@@ -11,7 +11,6 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  // تم الاحتفاظ بـ nom فقط وإزالة description
   const [formData, setFormData] = useState({
     nom: ''
   });
@@ -117,7 +116,7 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-2 text-xs font-semibold"
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-2 text-xs font-semibold cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Retour aux chambres</span>
@@ -133,7 +132,7 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
 
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-xs transition shadow-sm"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-xs transition shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Ajouter une Caractéristique</span>
@@ -170,14 +169,14 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => openModal(item)}
-                    className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                    className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
                     title="Modifier"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                    className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                     title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -197,7 +196,7 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
               <h2 className="text-base font-bold text-slate-800">
                 {editingCaracteristique ? 'Modifier la Caractéristique' : 'Ajouter une Caractéristique'}
               </h2>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600">
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -219,13 +218,13 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 font-semibold text-xs rounded-xl"
+                  className="px-4 py-2 border border-slate-200 text-slate-600 font-semibold text-xs rounded-xl cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl cursor-pointer"
                 >
                   {editingCaracteristique ? 'Mettre à jour' : 'Enregistrer'}
                 </button>

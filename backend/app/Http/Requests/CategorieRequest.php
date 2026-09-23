@@ -24,6 +24,7 @@ class CategorieRequest extends FormRequest
     {
         return [
             'nom' => 'required|string|max:255|unique:categories,nom',
+            'destination_id' => 'nullable|exists:destinations,id', 
         ];
     }
 }

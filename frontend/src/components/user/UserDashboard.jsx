@@ -12,7 +12,7 @@ import Profile from './Profile';
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export default function UserDashboard() {
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('user-dashboard');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const [userData, setUserData] = useState(null);
@@ -139,7 +139,7 @@ export default function UserDashboard() {
         <header className="h-20 bg-white border-b border-emerald-100 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
           <button 
             onClick={() => setIsMobileOpen(true)}
-            className="lg:hidden p-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+            className="lg:hidden p-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -149,7 +149,7 @@ export default function UserDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
+            <button className="relative p-2 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition cursor-pointer">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-600 rounded-full"></span>
             </button>
@@ -227,7 +227,7 @@ export default function UserDashboard() {
                   <Layers className="w-4 h-4 text-emerald-700 hidden sm:block" />
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                       selectedCategory === 'all' 
                         ? 'bg-emerald-700 text-white shadow-xs' 
                         : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -239,7 +239,7 @@ export default function UserDashboard() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategory(cat.nom)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                         selectedCategory === cat.nom 
                           ? 'bg-emerald-700 text-white shadow-xs' 
                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -304,13 +304,12 @@ export default function UserDashboard() {
             <VoirDestinations onSelectDestinationForAuberges={setSelectedDestForAuberges} />
           )}
 
-          {activeSection === 'mes-reservations' && (
+          {activeSection === 'reservations' && (
             <VoirReservations />
           )}
 
           {activeSection === 'favoris' && <MesFavoris />}
 
-          {/* Hna t-calia l'component Profile li sawbti dyal bssaḥ */}
           {activeSection === 'profile' && <Profile />}
           
         </main>

@@ -19,6 +19,7 @@ import GererChambre from "./GererChambre.jsx";
 export default function Aubergement() {
   const [auberges, setAuberges] = useState([]);
   const [destinations, setDestinations] = useState([]);
+  const [categories, setCategories] = useState([]); // <-- Nouvel état pour les catégories
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -34,13 +35,14 @@ export default function Aubergement() {
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({}); 
 
-  // Form State Auberge
+  // Form State Auberge (ajout de categorie_id)
   const [formData, setFormData] = useState({
     nom: '',
     adresse: '',
     ville: '',
     telephone: '',
     destination_id: '',
+    categorie_id: '', 
     nombre_chambres: '',
     prix: '',
     description: '',
@@ -52,6 +54,7 @@ export default function Aubergement() {
   useEffect(() => {
     fetchAuberges();
     fetchDestinations();
+    fetchCategories(); 
   }, []);
 
   const fetchAuberges = async () => {
@@ -88,6 +91,22 @@ export default function Aubergement() {
     }
   };
 
+  // Fonction pour récupérer les catégories depuis l'API Laravel
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/categories', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data && response.data.categories) {
+        setCategories(response.data.categories);
+      } else if (Array.isArray(response.data)) {
+        setCategories(response.data);
+      }
+    } catch (err) {
+      console.error("Erreur lors du chargement des catégories:", err);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -113,6 +132,7 @@ export default function Aubergement() {
         ville: auberge.ville || '',
         telephone: auberge.telephone || '',
         destination_id: auberge.destination_id || '',
+        categorie_id: auberge.categorie_id || '', 
         nombre_chambres: auberge.nombre_chambres || '',
         prix: auberge.prix || '',
         description: auberge.description || '',
@@ -126,6 +146,7 @@ export default function Aubergement() {
         ville: '',
         telephone: '',
         destination_id: '',
+        categorie_id: '',
         nombre_chambres: '',
         prix: '',
         description: '',
@@ -158,6 +179,7 @@ export default function Aubergement() {
     if (formData.ville) data.append('ville', formData.ville);
     if (formData.telephone) data.append('telephone', formData.telephone);
     data.append('destination_id', formData.destination_id);
+    if (formData.categorie_id) data.append('categorie_id', formData.categorie_id); 
     if (formData.nombre_chambres) data.append('nombre_chambres', formData.nombre_chambres);
     if (formData.prix) data.append('prix', formData.prix);
     if (formData.description) data.append('description', formData.description);
@@ -214,7 +236,6 @@ export default function Aubergement() {
     aub.adresse.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Si une auberge est sélectionnée pour gérer ses chambres, on affiche le composant GererChambre
   if (selectedAubergeForChambres) {
     return (
       <div className="p-3 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
@@ -252,7 +273,6 @@ export default function Aubergement() {
         </button>
       </div>
 
-      {/* Messages de succès / erreur globaux */}
       {message && (
         <div className="flex items-center gap-2 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl">
           <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -267,7 +287,6 @@ export default function Aubergement() {
         </div>
       )}
 
-      {/* Barre de recherche */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
@@ -279,7 +298,6 @@ export default function Aubergement() {
         />
       </div>
 
-      {/* Grille des Auberges */}
       {loading ? (
         <p className="text-xs text-slate-400 text-center py-8">Chargement des auberges...</p>
       ) : filteredAuberges.length === 0 ? (
@@ -330,7 +348,6 @@ export default function Aubergement() {
                 </div>
               </div>
 
-              {/* Actions de la carte */}
               <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-slate-50/50">
                 <button
                   onClick={() => setSelectedAubergeForChambres(aub)}
@@ -445,7 +462,7 @@ export default function Aubergement() {
                 </div>
               </div>
 
-              {/* Destination & Nombre de chambres */}
+              {/* Destination & Catégorie */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Destination</label>
@@ -456,7 +473,7 @@ export default function Aubergement() {
                     required
                     className="w-full px-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-800 bg-white"
                   >
-                    <option value="">Sélectionner</option>
+                    <option value="">Sélectionner une destination</option>
                     {destinations.map((dest) => (
                       <option key={dest.id} value={dest.id}>
                         {dest.nom_destination || dest.nom}
@@ -465,16 +482,35 @@ export default function Aubergement() {
                   </select>
                 </div>
 
+                {/* Champ Catégorie ajouté ici */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre total de chambres</label>
-                  <input
-                    type="number"
-                    name="nombre_chambres"
-                    value={formData.nombre_chambres}
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Catégorie</label>
+                  <select
+                    name="categorie_id"
+                    value={formData.categorie_id}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-800"
-                  />
+                    className="w-full px-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-800 bg-white"
+                  >
+                    <option value="">Sélectionner une catégorie</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nom_categorie || cat.nom}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              {/* Nombre de chambres */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre total de chambres</label>
+                <input
+                  type="number"
+                  name="nombre_chambres"
+                  value={formData.nombre_chambres}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-800"
+                />
               </div>
 
               {/* Image */}

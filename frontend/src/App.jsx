@@ -7,10 +7,10 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DestinationsAdmin from './components/admin/DestinationsAdmin';
 import VoirDestinations from './components/user/VoirDestinations';
-
 import MesFavoris from './components/user/MesFavoris';
 import VoirReservations from './components/user/VoirReservations';
 import Profile from './components/user/Profile';
+ import UserDashboard from './components/user/UserDashboard';
 
 function App() {
   return (
@@ -20,21 +20,22 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* user routes */}
         <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-          <Route path="/destinations/:id" element={<VoirDestinations />} />
+           <Route path="/user-dashboard" element={<UserDashboard />} /> 
           
-          <Route path="/user/MesFavoris" element={<MesFavoris />} />
-          <Route path="/user/VoirReservations" element={<VoirReservations />} />
-          <Route path="/user/Profile" element={<Profile />} />
+          <Route path="/user/profile" element={<Profile />} />
+          <Route path="/user/reservations" element={<VoirReservations />} />
+          <Route path ="/user/destinations" element={<VoirDestinations/>} />
+          <Route path="/user/favoris" element={<MesFavoris />} />
         </Route>
 
+        {/* Admin Protected Routes */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin/destinations" element={<DestinationsAdmin />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element="/" />
       </Routes>
     </Router>
   );
