@@ -7,10 +7,10 @@ const Register = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  
+  // 1. État initial sans "username"
   const [formData, setFormData] = useState({
     name: '',
-    username: '',
     email: '',
     password: '',
     password_confirmation: '',
@@ -53,7 +53,6 @@ const Register = () => {
         },
         body: JSON.stringify({
           name: formData.name,
-          username: formData.username,
           email: formData.email,
           password: formData.password,
           password_confirmation: formData.password_confirmation,
@@ -115,32 +114,18 @@ const Register = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="relative">
-                <User className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nom complet" 
-                  required
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
-                />
-              </div>
-
-              <div className="relative">
-                <User className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="Nom d'utilisateur" 
-                  required
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
-                />
-              </div>
+            {/* Nom complet (champ unique sur toute la largeur) */}
+            <div className="relative">
+              <User className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Nom complet" 
+                required
+                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
             </div>
 
             {/* Email */}

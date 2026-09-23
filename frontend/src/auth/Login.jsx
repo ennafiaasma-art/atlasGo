@@ -23,7 +23,7 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -44,34 +44,28 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const userToken = data.token || data.access_token || data.authorisation?.token;
-
-        if (userToken) {
-          localStorage.setItem('token', userToken);
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
           
-          if (data.user) {
-            localStorage.setItem('user', JSON.stringify(data.user));
-          }
-
-          const role = data.user?.role;
+          const role = data.user.role;
           if (role === 'admin') {
             navigate('/admin-dashboard', { replace: true });
           } else {
-            navigate('/user-dashboard', { replace: true });
+            navigate('/user-dashboard', { replace: true }); 
           }
         } else {
-          setError("Token not found");
+          setError("Données utilisateur introuvables");
         }
       } else {
-        setError(data.message || 'Email or password incorrect');
+        setError(data.message || 'Email ou mot de passe incorrect');
       }
     } catch (err) {
       console.error('Erreur de connexion:', err);
-      setError('error en server laravel.');
+      setError('Erreur de connexion au serveur Laravel.');
     } finally {
       setLoading(false);
     }
-  };
+  };;
 
   return (
     <div 
