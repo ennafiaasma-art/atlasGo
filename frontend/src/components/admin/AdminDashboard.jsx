@@ -197,7 +197,8 @@ export default function AdminDashboard() {
         {activeSection === 'accommodations' && <AccommodationsSection />}
         {activeSection === 'favoris' && <AdminFavoritesSection />}
         {activeSection === 'users' && <AdminClientsSection />}
-        {activeSection === 'profile' && <AdminProfileSection />}         
+        {activeSection === 'profile' && <AdminProfileSection />} 
+        {activeSection === 'admin-reservations' && <AdminReservations />}        
         
         {/* Autres sections par défaut */}
         {!['dashboard', 'destinations', 'accommodations', 'favoris', 'profile', 'users'].includes(activeSection) && (

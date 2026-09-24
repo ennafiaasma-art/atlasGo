@@ -16,6 +16,8 @@ export default function Sidebar({ role = 'user', activeSection, setActiveSection
     { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { id: 'destinations', label: 'Destinations', icon: Compass },
     { id: 'accommodations', label: 'Hébergements', icon: Building2 },
+    // Ajout de la gestion des réservations pour l'admin
+    { id: 'admin-reservations', label: 'Gestion Réservations', icon: CalendarDays },
     { id: 'favoris', label: 'Favoris', icon: Heart },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'profile', label: 'Mon Profil', icon: User },
