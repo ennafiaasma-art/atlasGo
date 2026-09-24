@@ -7,7 +7,6 @@ use App\Models\Reservation;
 use App\Models\Chambre;
 use App\Enums\ReservationStatus;
 use App\Http\Requests\ReservationRequest;
-use App\Http\Requests\UpdateReservationStatusRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -133,12 +132,23 @@ class ReservationController extends Controller
         ], 200);
     }
 
-    public function updateStatus(UpdateReservationStatusRequest $request, $id)
+    public function updateStatus(Request $request, $id)
     {
-        $reservation = Reservation::findOrFail($id);
-        $reservation->update($request->validated());
+        $data = $request->validate([
+            'statut' => 'required|in:pending,confirmed,cancelled',
+        ]);
 
-        if (isset($request->statut) && $request->statut === ReservationStatus::CANCELLED->value) {
+        $reservation = Reservation::find($id);
+
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'Réservation introuvable.'
+            ], 404);
+        }
+
+        $reservation->update(['statut' => $data['statut']]);
+
+        if ($data['statut'] === ReservationStatus::CANCELLED->value) {
             $chambre = Chambre::find($reservation->chambre_id);
             if ($chambre) {
                 $chambre->update(['statut' => 'disponible']);
@@ -147,7 +157,7 @@ class ReservationController extends Controller
 
         return response()->json([
             'message'     => 'Statut de réservation mis à jour.',
-            'reservation' => $reservation
+            'reservation' => $reservation->fresh()
         ], 200);
     }
 

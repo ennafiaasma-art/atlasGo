@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  Bell, ChevronDown, MapPin, Bed, Heart, Menu, Search, Layers, User 
+  Bell, ChevronDown, MapPin, Bed, Heart, Menu, Search, Layers 
 } from 'lucide-react';
 import Sidebar from '../Sidebar.jsx';
 import MesFavoris from './MesFavoris';
@@ -45,7 +45,7 @@ export default function UserDashboard() {
         axios.get(`${API_BASE_URL}/destinations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE_URL}/categories`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE_URL}/auberges`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE_URL}/favoris`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_BASE_URL}/favorites`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       if (userRes.data) {
@@ -99,8 +99,8 @@ export default function UserDashboard() {
     
     const matchesCategory = selectedCategory === 'all' || 
       dest.categorie_id === selectedCategory || 
-      dest.categorie?.nom?.toLowerCase() === selectedCategory.toLowerCase() ||
-      dest.categorie?.id === selectedCategory;
+      dest.categorie?.id === selectedCategory ||
+      dest.categorie?.nom?.toLowerCase() === String(selectedCategory).toLowerCase();
 
     return matchesSearch && matchesCategory;
   });
@@ -238,9 +238,9 @@ export default function UserDashboard() {
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
-                      onClick={() => setSelectedCategory(cat.nom)}
+                      onClick={() => setSelectedCategory(cat.id)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
-                        selectedCategory === cat.nom 
+                        selectedCategory === cat.id 
                           ? 'bg-emerald-700 text-white shadow-xs' 
                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                       }`}
@@ -310,7 +310,6 @@ export default function UserDashboard() {
 
           {activeSection === 'favoris' && <MesFavoris />}
 
-          {/* Hna t-calia l'component Profile li sawbti dyal bssaḥ */}
           {activeSection === 'profile' && <Profile />}
           
         </main>

@@ -22,6 +22,7 @@ import Sidebar from '../Sidebar.jsx';
 import AdminFavoritesSection from './AdminFavoritesSection.jsx'; 
 import AdminProfileSection from './AdminProfileSection.jsx';
 import AdminClientsSection from './AdminClientsSection.jsx';
+import AdminReservations from './AdminReservations.jsx'; 
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('dashboard'); 
@@ -201,7 +202,7 @@ export default function AdminDashboard() {
         {activeSection === 'admin-reservations' && <AdminReservations />}        
         
         {/* Autres sections par défaut */}
-        {!['dashboard', 'destinations', 'accommodations', 'favoris', 'profile', 'users'].includes(activeSection) && (
+        {!['dashboard', 'destinations', 'accommodations', 'favoris', 'profile', 'users' , 'admin-reservations'].includes(activeSection) && (
           <div className="p-4 sm:p-8">
             <h1 className="text-lg sm:text-xl font-bold text-slate-900">
               {sectionTitles[activeSection] || 'Section'}
