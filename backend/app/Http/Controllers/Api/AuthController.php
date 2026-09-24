@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\LoginRequest;
+use App\Http\Requests\LoginRequest; // 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    //
     // Register
     public function register(RegisterRequest $request)
     {
@@ -33,16 +33,10 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
         ], 201);
     }
-    // Login
-public function login(Request $request)
-    {
-        // التحقق من صحة المدخلات
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
 
-        // محاولة تسجيل الدخول
+    public function login(LoginRequest $request)
+    {
+
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'message' => 'Email ou mot de passe incorrect'
@@ -70,10 +64,10 @@ public function login(Request $request)
             'message' => 'Déconnexion réussie'
         ], 200);
     }
+
     // Profil User
     public function me(Request $request)
     {
         return response()->json($request->user(), 200);
     }
-
 }

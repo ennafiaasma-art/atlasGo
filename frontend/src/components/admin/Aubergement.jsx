@@ -161,22 +161,31 @@ export default function Aubergement() {
     if (formData.nombre_chambres) data.append('nombre_chambres', formData.nombre_chambres);
     if (formData.prix) data.append('prix', formData.prix);
     if (formData.description) data.append('description', formData.description);
+    
     if (formData.image instanceof File) {
       data.append('image', formData.image);
     }
 
     try {
       if (editingAuberge) {
+        data.append('_method', 'PUT');
+        
         await axios.post(`http://127.0.0.1:8000/api/auberges/${editingAuberge.id}`, data, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`
+            // ملاحظة: ما كنزيدوش Content-Type هكاك باش المتصفح يدير multipart/form-data و boundary راسو
+          }
         });
         setMessage('Auberge modifiée avec succès!');
       } else {
         await axios.post('http://127.0.0.1:8000/api/auberges', data, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          }
         });
         setMessage('Auberge créée avec succès!');
       }
+      
       fetchAuberges();
       closeModal();
       setTimeout(() => setMessage(null), 3000);
@@ -214,7 +223,6 @@ export default function Aubergement() {
     aub.adresse.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Si une auberge est sélectionnée pour gérer ses chambres, on affiche le composant GererChambre
   if (selectedAubergeForChambres) {
     return (
       <div className="p-3 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
