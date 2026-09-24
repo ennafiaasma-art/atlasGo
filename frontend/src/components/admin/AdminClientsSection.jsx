@@ -9,8 +9,9 @@ export default function AdminClientsSection() {
     fetchClients();
   }, []);
 
-const fetchClients = () => {
-    fetch('http://localhost:8000/api/admin/clients', {
+  const fetchClients = () => {
+    // Remplacement de localhost par 127.0.0.1
+    fetch('http://127.0.0.1:8000/api/admin/clients', {
       headers: { 
         'Authorization': `Bearer ${localStorage.getItem('token')}`, 
         'Accept': 'application/json' 
@@ -18,9 +19,8 @@ const fetchClients = () => {
     })
       .then(res => res.json())
       .then(data => {
-        console.log("Données reçues des clients:", data); // باش نشوفو شنو راجع في Console
+        console.log("Données reçues des clients:", data);
         
-        // هنا كنتأكدوا بلي clients ديما array باش ما يوقعش Crash
         let clientsList = [];
         if (Array.isArray(data)) {
           clientsList = data;
@@ -28,6 +28,8 @@ const fetchClients = () => {
           clientsList = data.data;
         } else if (data && Array.isArray(data.users)) {
           clientsList = data.users;
+        } else if (data && Array.isArray(data.clients)) {
+          clientsList = data.clients;
         }
         
         setClients(clientsList);
@@ -37,6 +39,26 @@ const fetchClients = () => {
         console.error("Erreur fetch clients:", err);
         setLoading(false);
       });
+  };
+
+  const handleDelete = (clientId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer ce client ?")) return;
+
+    fetch(`http://127.0.0.1:8000/api/admin/users/${clientId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Accept': 'application/json'
+      }
+    })
+      .then(res => {
+        if (res.ok) {
+          setClients(clients.filter(client => client.id !== clientId));
+        } else {
+          alert("Erreur lors de la suppression du client.");
+        }
+      })
+      .catch(err => console.error("Erreur suppression client:", err));
   };
 
   if (loading) {
@@ -90,7 +112,7 @@ const fetchClients = () => {
                     </td>
                     <td className="py-3 px-3">
                       <span className="px-2 py-1 bg-slate-100 text-slate-700 font-semibold rounded-lg text-[10px]">
-                        {client.role}
+                        {client.role || 'client'}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">

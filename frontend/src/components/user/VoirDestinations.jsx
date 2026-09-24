@@ -12,7 +12,7 @@ export default function VoirDestinations() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
-  
+
   // États pour la gestion des auberges d'une destination spécifique
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [aubergesDestination, setAubergesDestination] = useState([]);
@@ -23,11 +23,11 @@ export default function VoirDestinations() {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [chambresAuberge, setChambresAuberge] = useState([]);
   const [loadingChambres, setLoadingChambres] = useState(false);
-  const [reservationData, setReservationData] = useState({ 
-    chambre_id: '', 
-    date_debut: '', 
-    date_fin: '', 
-    nb_personne: 1 
+  const [reservationData, setReservationData] = useState({
+    chambre_id: '',
+    date_debut: '',
+    date_fin: '',
+    nb_personne: 1
   });
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -81,13 +81,13 @@ export default function VoirDestinations() {
 
       const data = response.data?.auberges || response.data?.data || response.data;
       const list = Array.isArray(data) ? data : [];
-      
-      const filteredAuberges = list.filter(aub => 
-        String(aub.destination_id) === String(dest.id) || 
+
+      const filteredAuberges = list.filter(aub =>
+        String(aub.destination_id) === String(dest.id) ||
         String(aub.destination?.id) === String(dest.id)
       );
 
-      setAubergesDestination(filteredAuberges.length > 0 ? filteredAuberges : list);
+      setAubergesDestination(filteredAuberges);
     } catch (err) {
       console.error("Erreur chargement auberges:", err);
       setAubergesDestination([]);
@@ -103,22 +103,23 @@ export default function VoirDestinations() {
     setSuccessMessage('');
     try {
       const token = localStorage.getItem('token');
-      
+
       // Nsifto les dates m3a la requête bach l'backend yfiltrer lina chambres lli mreserviyin f dak la période
-      const params = {};
-      if (reservationData.date_debut) params.date_debut = reservationData.date_debut;
-      if (reservationData.date_fin) params.date_fin = reservationData.date_fin;
+      const params = {
+        date_debut: formatDateForApi(reservationData.date_debut),
+        date_fin: formatDateForApi(reservationData.date_fin)
+      };
 
       const response = await axios.get(`${API_BASE_URL}/auberges/${selectedAubergeForDetails.id}/chambres`, {
         headers: { Authorization: `Bearer ${token}` },
         params: params
       });
-      
+
       const data = response.data?.chambres || response.data?.data || response.data;
       const list = Array.isArray(data) ? data : [];
 
       setChambresAuberge(list);
-      
+
       // Sélectionner par défaut la première chambre disponible s'il y en a
       if (list.length > 0) {
         setReservationData(prev => ({ ...prev, chambre_id: list[0].id }));
@@ -145,11 +146,11 @@ export default function VoirDestinations() {
         const response = await axios.get(`${API_BASE_URL}/auberges/${selectedAubergeForDetails.id}/chambres`, {
           headers: { Authorization: `Bearer ${token}` },
           params: {
-            date_debut: updatedData.date_debut,
-            date_fin: updatedData.date_fin
+            date_debut: formatDateForApi(updatedData.date_debut),
+            date_fin: formatDateForApi(updatedData.date_fin)
           }
         });
-        
+
         const data = response.data?.chambres || response.data?.data || response.data;
         const list = Array.isArray(data) ? data : [];
         setChambresAuberge(list);
@@ -173,13 +174,20 @@ export default function VoirDestinations() {
   const getAubergePrix = (aub) => aub?.prix || aub?.prix_par_nuit || aub?.tarif || null;
   const getAubergePhone = (aub) => aub?.telephone || aub?.phone || aub?.tel || 'Non disponible';
   const getAubergeDescription = (aub) => aub?.description || aub?.desc || aub?.details || 'Profitez d\'un séjour inoubliable dans cette auberge chaleureuse offrant tout le confort nécessaire.';
+  const formatDateForApi = (value) => value ? value.slice(0, 10) : '';
+  const getDestinationMapQuery = (destination) => [
+    destination?.nom_destination || destination?.nom,
+    destination?.ville,
+    destination?.province
+  ].filter(Boolean).join(', ');
+  const getGoogleMapsUrl = (query) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 
   // Gestion de la création d'une réservation
   const handleCreateReservation = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      
+
       const payload = {
         chambre_id: reservationData.chambre_id,
         date_debut: reservationData.date_debut,
@@ -188,7 +196,7 @@ export default function VoirDestinations() {
       };
 
       await axios.post(`${API_BASE_URL}/reservations`, payload, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
           'Content-Type': 'application/json'
@@ -202,7 +210,10 @@ export default function VoirDestinations() {
       }, 2000);
     } catch (err) {
       console.error("Erreur complète:", err.response?.data);
-      const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || 'Erreur lors de la réservation.';
+      const validationErrors = err.response?.data?.errors;
+      const errorMsg = err.response?.data?.message
+        || (validationErrors && Object.values(validationErrors).flat().join(' '))
+        || 'Erreur lors de la réservation.';
       alert(`Erreur: ${errorMsg}`);
     }
   };
@@ -241,7 +252,7 @@ export default function VoirDestinations() {
               <div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">{getAubergeName(aub)}</h1>
                 <p className="text-xs text-emerald-800 font-semibold flex items-center gap-1 mt-1">
-                  <MapPin className="w-4 h-4" /> 
+                  <MapPin className="w-4 h-4" />
                   {getAubergeVille(aub)}
                 </p>
               </div>
@@ -292,7 +303,7 @@ export default function VoirDestinations() {
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
               <h3 className="text-base font-bold text-slate-900">Réserver : {getAubergeName(aub)}</h3>
-              
+
               {successMessage ? (
                 <div className="p-4 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -300,11 +311,11 @@ export default function VoirDestinations() {
                 </div>
               ) : (
                 <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
-                  
+
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Date de début</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       required
                       value={reservationData.date_debut}
                       onChange={(e) => handleDateChange('date_debut', e.target.value)}
@@ -314,8 +325,8 @@ export default function VoirDestinations() {
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Date de fin</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       required
                       value={reservationData.date_fin}
                       onChange={(e) => handleDateChange('date_fin', e.target.value)}
@@ -351,9 +362,9 @@ export default function VoirDestinations() {
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nombre de personnes</label>
-                    <input 
-                      type="number" 
-                      min="1" 
+                    <input
+                      type="number"
+                      min="1"
                       required
                       value={reservationData.nb_personne}
                       onChange={(e) => setReservationData({ ...reservationData, nb_personne: e.target.value })}
@@ -362,15 +373,15 @@ export default function VoirDestinations() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={chambresAuberge.length === 0}
                       className="flex-1 py-3 bg-[#215234] text-white font-bold rounded-xl hover:bg-[#1a4129] transition disabled:opacity-50"
                     >
                       Confirmer
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setShowReservationModal(false)}
                       className="px-4 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition"
                     >
@@ -414,6 +425,17 @@ export default function VoirDestinations() {
               <MapPin className="w-4 h-4" />
               {selectedDestination.ville ? `${selectedDestination.ville}, ` : ''}{selectedDestination.province || 'Azilal'}
             </p>
+            {getDestinationMapQuery(selectedDestination) && (
+              <a
+                href={getGoogleMapsUrl(getDestinationMapQuery(selectedDestination))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition"
+              >
+                <MapPin className="w-4 h-4" />
+                Ouvrir dans Google Maps
+              </a>
+            )}
             <p className="text-sm text-slate-600 leading-relaxed">
               {selectedDestination.description || 'Aucune description disponible.'}
             </p>
@@ -440,15 +462,15 @@ export default function VoirDestinations() {
               {aubergesDestination.map((aub) => {
                 const prix = getAubergePrix(aub);
                 return (
-                  <div 
-                    key={aub.id} 
+                  <div
+                    key={aub.id}
                     onClick={() => setSelectedAubergeForDetails(aub)}
                     className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition cursor-pointer group"
                   >
                     <div className="relative h-44 bg-slate-100">
-                      <img 
-                        src={getImageUrl(aub.image)} 
-                        alt={getAubergeName(aub)} 
+                      <img
+                        src={getImageUrl(aub.image)}
+                        alt={getAubergeName(aub)}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                       />
                     </div>
@@ -525,10 +547,10 @@ export default function VoirDestinations() {
                     alt={dest.nom_destination || 'Destination'}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
-                  
-                  <FavoriteButton 
-                    destinationId={dest.id} 
-                    initialIsFavorite={favoriteIds.includes(dest.id)} 
+
+                  <FavoriteButton
+                    destinationId={dest.id}
+                    initialIsFavorite={favoriteIds.includes(dest.id)}
                   />
                 </div>
 
@@ -550,7 +572,7 @@ export default function VoirDestinations() {
               </div>
 
               <div className="p-4 pt-0">
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     fetchAubergesForDestination(dest);

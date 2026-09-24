@@ -9,6 +9,8 @@ use App\Enums\ReservationStatus;
 use App\Http\Requests\ReservationRequest;
 use App\Http\Requests\UpdateReservationStatusRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
@@ -29,26 +31,51 @@ class ReservationController extends Controller
 
     public function store(ReservationRequest $request)
     {
-        $reservation = Reservation::create([
-            'user_id' => auth()->id(),
-            'chambre_id' => $request->chambre_id,
-            'date_debut' => $request->date_debut,
-            'date_fin' => $request->date_fin,
-            'nb_personne' => $request->nb_personne,
-            'statut' => ReservationStatus::PENDING->value,
-        ]);
+        try {
+            $reservation = DB::transaction(function () use ($request) {
+                $chambre = Chambre::whereKey($request->chambre_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $chambre = Chambre::find($request->chambre_id);
-        if ($chambre) {
-            $chambre->update([
-                'statut' => 'occupee',
+                $hasConflict = $chambre->reservations()
+                    ->where('statut', '!=', ReservationStatus::CANCELLED->value)
+                    ->where('date_debut', '<', $request->date_fin)
+                    ->where('date_fin', '>', $request->date_debut)
+                    ->exists();
+
+                if ($hasConflict) {
+                    abort(409, 'Cette chambre est déjà réservée pour les dates sélectionnées.');
+                }
+
+                return Reservation::create([
+                    'user_id' => $request->user()->id,
+                    'chambre_id' => $chambre->id,
+                    'date_debut' => $request->date_debut,
+                    'date_fin' => $request->date_fin,
+                    'nb_personne' => $request->nb_personne ?? 1,
+                    'statut' => ReservationStatus::PENDING->value,
+                ]);
+            });
+
+            return response()->json([
+                'message' => 'Réservation réussie !',
+                'reservation' => $reservation->load('chambre.auberge')
+            ], 201);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        } catch (\Throwable $exception) {
+            Log::error('Erreur lors de la création de la réservation.', [
+                'user_id' => $request->user()?->id,
+                'chambre_id' => $request->chambre_id,
+                'exception' => $exception->getMessage(),
             ]);
-        }
 
-        return response()->json([
-            'message' => 'Réservation réussie !',
-            'reservation' => $reservation
-        ], 201);
+            return response()->json([
+                'message' => 'La réservation n’a pas pu être enregistrée. Veuillez réessayer.',
+            ], 500);
+        }
     }
 
     public function show(Request $request, $id)

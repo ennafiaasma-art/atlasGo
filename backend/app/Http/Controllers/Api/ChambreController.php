@@ -3,15 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\ReservationStatus;
 use App\Models\Chambre;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ChambreController extends Controller
 {
-    public function index($aubergeId)
+    public function index(Request $request, $aubergeId)
     {
-        $chambres = Chambre::where('auberge_id', $aubergeId)->with('caracteristiques')->get();
+        $dates = $request->validate([
+            'date_debut' => 'nullable|date_format:Y-m-d',
+            'date_fin' => 'nullable|date_format:Y-m-d|after:date_debut',
+        ]);
+
+        $chambres = Chambre::where('auberge_id', $aubergeId)
+            ->when(!empty($dates['date_debut']) && !empty($dates['date_fin']), function ($query) use ($dates) {
+                $query->whereDoesntHave('reservations', function ($reservationQuery) use ($dates) {
+                    $reservationQuery
+                        ->where('statut', '!=', ReservationStatus::CANCELLED->value)
+                        ->where('date_debut', '<', $dates['date_fin'])
+                        ->where('date_fin', '>', $dates['date_debut']);
+                });
+            })
+            ->with('caracteristiques')
+            ->get();
+
         return response()->json($chambres);
     }
 

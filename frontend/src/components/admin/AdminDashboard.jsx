@@ -24,7 +24,7 @@ import AdminProfileSection from './AdminProfileSection.jsx';
 import AdminClientsSection from './AdminClientsSection.jsx';
 
 export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState('dashboard'); // بدينا بالداشبورد كمظهر رئيسي
+  const [activeSection, setActiveSection] = useState('dashboard'); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Stats pour le tableau de bord
@@ -45,12 +45,14 @@ export default function AdminDashboard() {
       const [aubergesRes, destinationsRes, usersRes] = await Promise.all([
         axios.get('http://127.0.0.1:8000/api/auberges', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
         axios.get('http://127.0.0.1:8000/api/destinations', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
-        axios.get('http://127.0.0.1:8000/api/users', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
+        axios.get('http://127.0.0.1:8000/api/admin/clients', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
       ]);
 
       const aubergesList = aubergesRes.data.auberges || aubergesRes.data || [];
       const destinationsList = destinationsRes.data.destinations || destinationsRes.data || [];
-      const usersList = usersRes.data.users || usersRes.data || [];
+      const usersList = Array.isArray(usersRes.data)
+        ? usersRes.data
+        : usersRes.data?.users || usersRes.data?.data || [];
 
       setStats({
         aubergesCount: Array.isArray(aubergesList) ? aubergesList.length : 0,
