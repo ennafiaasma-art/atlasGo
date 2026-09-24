@@ -1,29 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, Compass, Trees, Loader } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
-  const navigate = useNavigate();
-
+export default function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    remember: false,
   });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -44,17 +38,19 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.user) {
+        // التحقق من وجود الـ user والـ token القادمين من Laravel
+        if (data.user && data.token) {
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('token', data.token); // تخزين الرمز الحقيقي للـ Sanctum
           
           const role = data.user.role;
           if (role === 'admin') {
             navigate('/admin-dashboard', { replace: true });
           } else {
-            navigate('/user-dashboard', { replace: true }); 
+            navigate('/user-dashboard', { replace: true });
           }
         } else {
-          setError("Données utilisateur introuvables");
+          setError("Données de réponse incomplètes du serveur.");
         }
       } else {
         setError(data.message || 'Email ou mot de passe incorrect');
@@ -65,135 +61,58 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };;
+  };
 
   return (
-    <div 
-      className="min-h-screen w-full bg-cover bg-center flex items-center justify-start p-4 lg:p-12 relative"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2000&auto=format&fit=crop')`
-      }}
-    >
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
-
-      <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[85vh]">
-        
-        <div className="lg:col-span-6 bg-white/95 backdrop-blur-md rounded-3xl p-8 lg:p-10 shadow-2xl border border-white/40 max-w-lg w-full mx-auto">
-          
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-emerald-800/10 flex items-center justify-center text-emerald-800">
-              <Trees className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-extrabold text-lg text-emerald-950 tracking-tight">Béni Mellal</span>
-              <span className="font-semibold text-sm text-emerald-700">Khénifra</span>
-            </div>
-          </div>
-
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Se connecter</h1>
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-            Bienvenue ! Connectez-vous pour accéder à votre espace personnel.
-          </p>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-xs rounded-xl">
-              {error}
-            </div>
-          )}
-
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* Email */}
-            <div className="relative">
-              <Mail className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input 
-                type="email" 
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Adresse email" 
-                required
-                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="relative">
-              <Lock className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input 
-                type={showPassword ? "text" : "password"} 
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Mot de passe" 
-                required
-                className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  name="remember"
-                  checked={formData.remember}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-emerald-700 accent-emerald-700 rounded border-gray-300 cursor-pointer"
-                />
-                Se souvenir de moi
-              </label>
-              <a href="#" className="text-emerald-700 font-semibold hover:underline">
-                Mot de passe oublié ?
-              </a>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/20 mt-2 disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? (
-                <Loader className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4" />
-                  Se connecter
-                </>
-              )}
-            </button>
-          </form>
-
-          <p className="text-center text-xs text-gray-600 mt-8 pt-4 border-t border-gray-100">
-            Vous n'avez pas de compte ?{' '}
-            <Link to="/register" className="text-emerald-700 font-bold hover:underline">
-              Créer un compte
-            </Link>
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-emerald-100">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-slate-900">Connexion à AtlasGo</h2>
+          <p className="text-sm text-slate-500 mt-1">Veuillez entrer vos identifiants</p>
         </div>
 
-        <div className="hidden lg:flex lg:col-span-6 justify-center lg:justify-start items-start pt-12">
-          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/40 max-w-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-700/10 flex items-center justify-center shrink-0 text-emerald-700">
-              <Compass className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 text-base mb-1">Ravi de vous revoir !</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Retrouvez vos itinéraires sauvegardés, vos destinations favorites et planifiez votre prochaine aventure.
-              </p>
-            </div>
+        {error && (
+          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-semibold">
+            {error}
           </div>
-        </div>
+        )}
 
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email</label>
+            <input 
+              type="email" 
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required 
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm"
+              placeholder="votre@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Mot de passe</label>
+            <input 
+              type="password" 
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required 
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition text-sm shadow-sm flex items-center justify-center"
+          >
+            {loading ? 'Connexion en cours...' : 'Se connecter'}
+          </button>
+        </form>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

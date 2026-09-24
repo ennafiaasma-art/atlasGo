@@ -9,25 +9,34 @@ export default function AdminClientsSection() {
     fetchClients();
   }, []);
 
-  const fetchClients = () => {
+const fetchClients = () => {
     fetch('http://localhost:8000/api/admin/clients', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Accept': 'application/json' }
+      headers: { 
+        'Authorization': `Bearer ${localStorage.getItem('token')}`, 
+        'Accept': 'application/json' 
+      }
     })
       .then(res => res.json())
       .then(data => {
-        setClients(data.data || data);
+        console.log("Données reçues des clients:", data); // باش نشوفو شنو راجع في Console
+        
+        // هنا كنتأكدوا بلي clients ديما array باش ما يوقعش Crash
+        let clientsList = [];
+        if (Array.isArray(data)) {
+          clientsList = data;
+        } else if (data && Array.isArray(data.data)) {
+          clientsList = data.data;
+        } else if (data && Array.isArray(data.users)) {
+          clientsList = data.users;
+        }
+        
+        setClients(clientsList);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erreur fetch clients:", err);
         setLoading(false);
       });
-  };
-
-  const handleDelete = (id) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
-      fetch(`http://localhost:8000/api/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      })
-      .then(() => fetchClients());
-    }
   };
 
   if (loading) {

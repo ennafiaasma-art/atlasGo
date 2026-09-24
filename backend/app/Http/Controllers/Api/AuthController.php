@@ -34,24 +34,33 @@ class AuthController extends Controller
         ], 201);
     }
     // Login
-    public function login(LoginRequest $request)
+public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
+        // التحقق من صحة المدخلات
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Les identifiants sont incorrects.'],
-            ]);
+        // محاولة تسجيل الدخول
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'message' => 'Email ou mot de passe incorrect'
+            ], 401);
         }
+
+        $user = Auth::user();
+
+        $user->tokens()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Connexion réussie',
             'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token' => $token
         ], 200);
     }
+
     // Logout
     public function logout(Request $request)
     {
