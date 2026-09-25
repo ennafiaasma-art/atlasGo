@@ -173,7 +173,6 @@ export default function Aubergement() {
         await axios.post(`http://127.0.0.1:8000/api/auberges/${editingAuberge.id}`, data, {
           headers: { 
             Authorization: `Bearer ${token}`
-            // ملاحظة: ما كنزيدوش Content-Type هكاك باش المتصفح يدير multipart/form-data و boundary راسو
           }
         });
         setMessage('Auberge modifiée avec succès!');

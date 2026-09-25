@@ -16,6 +16,15 @@ Système de réservation : Réservez facilement une chambre, consultez l'histori
 
 Tableau de bord administrateur : Un espace dédié pour gérer les destinations, catégories, auberges, chambres, utilisateurs, réservations et consulter les statistiques.
 
+# use case 
+![alt text](<Capture d'écran 2026-09-24 230738.png>)
+
+# diagram de class 
+![alt text](<Capture d'écran 2026-09-25 130238.png>)
+
+# erd diagram 
+![alt text](<Capture d'écran 2026-09-25 125738.png>)
+
 🛠️ Stack Technique
 
 Backend

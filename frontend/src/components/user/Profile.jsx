@@ -9,7 +9,6 @@ export default function Profile({ setActiveSection }) {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // جلب معلومات المستخدم عند تحميل المكون
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem('token');

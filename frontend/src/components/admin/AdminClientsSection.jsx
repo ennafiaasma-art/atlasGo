@@ -10,7 +10,6 @@ export default function AdminClientsSection() {
   }, []);
 
   const fetchClients = () => {
-    // Remplacement de localhost par 127.0.0.1
     fetch('http://127.0.0.1:8000/api/admin/clients', {
       headers: { 
         'Authorization': `Bearer ${localStorage.getItem('token')}`, 

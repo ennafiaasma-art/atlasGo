@@ -249,7 +249,6 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                   <p className="text-xs text-slate-500 mt-2">Type : {chambre.type}</p>
                   <p className="text-xs font-semibold text-emerald-800 mt-1">{chambre.prix} DH / nuit</p>
 
-                  {/* عرض الخصائص هنا */}
                   {chambre.caracteristiques && chambre.caracteristiques.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-slate-200/40">
                       {chambre.caracteristiques.map((carac) => (
@@ -353,7 +352,6 @@ export default function GererChambre({ selectedAuberge, token, onBack, onChambre
                 </select>
               </div>
 
-              {/* قسم اختيار الخصائص (Caracteristiques) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-2">Caractéristiques de la chambre</label>
                 {caracteristiquesDisponibles.length === 0 ? (

@@ -11,7 +11,6 @@ export default function GererCaracteristique({ selectedAuberge, token, onBack })
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  // تم الاحتفاظ بـ nom فقط وإزالة description
   const [formData, setFormData] = useState({
     nom: ''
   });

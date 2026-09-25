@@ -7,12 +7,10 @@ const DestinationsAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentDestination, setCurrentDestination] = useState(null);
 
-  // Initial Form State
   const initialFormState = {
     nom: '',
     ville: '',
@@ -27,7 +25,6 @@ const DestinationsAdmin = () => {
   const API_URL = 'http://127.0.0.1:8000/api/destinations';
   const token = localStorage.getItem('token');
 
-  // Helper Function: Formatting Storage URLs from Laravel
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/150';
     
@@ -40,20 +37,17 @@ const DestinationsAdmin = () => {
     return `http://127.0.0.1:8000/storage/${cleanPath}`;
   };
 
-  // Helper Function: Safely extract property values
   const getFieldValue = (field) => {
     if (!field) return '';
     if (typeof field === 'object') return field.nom || field.name || field.titre || '';
     return field;
   };
 
-  // Helper Function: Safely extract image path
   const getDestinationImage = (dest) => {
     if (!dest) return null;
     return dest.image || dest.image_url || dest.photo || dest.cover || null;
   };
 
-  // 1. CONSULTER (Fetch List)
   const fetchDestinations = async () => {
     setLoading(true);
     try {
@@ -99,13 +93,11 @@ const DestinationsAdmin = () => {
     setIsModalOpen(true);
   };
 
-  // Open Modal for Consulter Details
   const handleOpenViewModal = (dest) => {
     setCurrentDestination(dest);
     setIsViewModalOpen(true);
   };
 
-  // Handle Image Selection from PC
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -114,7 +106,6 @@ const DestinationsAdmin = () => {
     }
   };
 
-  // 2. AJOUTER & MODIFIER
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEdit = !!currentDestination;
@@ -174,7 +165,6 @@ const DestinationsAdmin = () => {
     }
   };
 
-  // 3. SUPPRIMER
   const handleDelete = (id) => {
     Swal.fire({
       title: 'Êtes-vous sûr ?',
@@ -209,7 +199,6 @@ const DestinationsAdmin = () => {
     });
   };
 
-  // Filter Search
   const filteredDestinations = destinations.filter(d => {
     const nom = d.nom?.toLowerCase() || '';
     const ville = getFieldValue(d.ville || d.ville_name).toLowerCase();
@@ -249,7 +238,6 @@ const DestinationsAdmin = () => {
         />
       </div>
 
-      {/* LISTE: Table sur grand écran, Grille de cartes sur mobile/tablette */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-xs">Chargement...</div>
@@ -257,7 +245,6 @@ const DestinationsAdmin = () => {
           <div className="text-center py-12 text-slate-400 text-xs">Aucune destination trouvée.</div>
         ) : (
           <>
-            {/* Vue Mobile & Tablette (Cards Grid) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
               {filteredDestinations.map((dest) => {
                 const imgPath = getDestinationImage(dest);
@@ -315,7 +302,6 @@ const DestinationsAdmin = () => {
               })}
             </div>
 
-            {/* Vue Desktop (Table classique) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-400 font-semibold border-b border-slate-100">
@@ -504,7 +490,6 @@ const DestinationsAdmin = () => {
         </div>
       )}
 
-      {/* MODAL: Consulter Details */}
       {isViewModalOpen && currentDestination && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-xl relative max-h-[90vh] overflow-y-auto">

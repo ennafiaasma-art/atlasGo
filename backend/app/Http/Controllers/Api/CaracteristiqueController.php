@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 
 class CaracteristiqueController extends Controller
 {
-    // جلب كل الخصائص (اختياري إيلا بغيتيه)
     public function index()
     {
         $caracteristiques = Caracteristique::all();

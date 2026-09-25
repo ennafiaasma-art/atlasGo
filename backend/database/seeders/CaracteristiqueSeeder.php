@@ -9,9 +9,7 @@ use App\Models\Auberge;
 class CaracteristiqueSeeder extends Seeder
 {
     public function run(): void
-    {
-        // جلب أول أوبيرج كمثال (أو التأكد من وجود أوبيرج)
-        $auberge = Auberge::first();
+    {        $auberge = Auberge::first();
 
         if ($auberge) {
             $caracteristiques = [

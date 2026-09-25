@@ -38,10 +38,9 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // التحقق من وجود الـ user والـ token القادمين من Laravel
         if (data.user && data.token) {
           localStorage.setItem('user', JSON.stringify(data.user));
-          localStorage.setItem('token', data.token); // تخزين الرمز الحقيقي للـ Sanctum
+          localStorage.setItem('token', data.token); 
           
           const role = data.user.role;
           if (role === 'admin') {

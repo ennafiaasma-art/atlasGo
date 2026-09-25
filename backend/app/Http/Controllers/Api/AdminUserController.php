@@ -31,7 +31,7 @@ class AdminUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin', // أو تحديد الدور حسب النظام عندك
+            'role' => 'admin', 
         ]);
 
         return response()->json([

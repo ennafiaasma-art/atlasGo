@@ -21,7 +21,6 @@ export default function MesFavoris() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // على حسب الهيكلة لي كترجع من الـ API (واش array مباشرة ولا داخل data)
       const data = response.data.favorites || response.data.data || response.data;
       setFavoris(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -32,7 +31,6 @@ export default function MesFavoris() {
   };
 
   const handleRemoveFromList = (destinationId) => {
-    // إزالة الوجهة من القائمة مباشرة في الواجهة ملي كيتعاود الضغط على الزر
     setFavoris(favoris.filter(item => (item.destination?.id || item.id) !== destinationId));
   };
 
@@ -68,7 +66,6 @@ export default function MesFavoris() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {favoris.map((fav) => {
-            // التعامل مع العلاقة واش كترجع Destination مباشرة ولا عبر object
             const dest = fav.destination || fav;
             return (
               <div 
