@@ -177,7 +177,7 @@ export default function Aubergement() {
         });
         setMessage('Auberge modifiée avec succès!');
       } else {
-        await axios.post('http://127.0.0.1:8000/api/auberges', data, {
+        await axios.put('http://127.0.0.1:8000/api/auberges', data, {
           headers: { 
             Authorization: `Bearer ${token}` 
           }

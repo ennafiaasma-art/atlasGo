@@ -63,8 +63,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-emerald-100">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
+      style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/images/bm.jpg')` }}
+    >
+      <div className="max-w-md w-full bg-white/95 backdrop-blur-xs rounded-3xl p-8 shadow-lg border border-emerald-100 relative z-10">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-slate-900">Connexion à AtlasGo</h2>
           <p className="text-sm text-slate-500 mt-1">Veuillez entrer vos identifiants</p>
@@ -85,7 +88,7 @@ export default function Login() {
               value={formData.email}
               onChange={handleChange}
               required 
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm bg-white"
               placeholder="votre@email.com"
             />
           </div>
@@ -98,7 +101,7 @@ export default function Login() {
               value={formData.password}
               onChange={handleChange}
               required 
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-sm bg-white"
               placeholder="••••••••"
             />
           </div>
@@ -106,7 +109,7 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition text-sm shadow-sm flex items-center justify-center"
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition text-sm shadow-sm flex items-center justify-center cursor-pointer"
           >
             {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>

@@ -74,13 +74,12 @@ Route::get('/auberges/{id}/chambres', [AubergeController::class, 'getAvailableCh
 
         // Gestion des Auberges (Admin)
         Route::post('/auberges', [AubergeController::class, 'store']);
-        Route::post('/auberges/{id}', [AubergeController::class, 'update']);
-        Route::delete('/auberges/{id}', [AubergeController::class, 'destroy']);
+Route::match(['put', 'patch', 'post'], '/auberges/{id}', [AubergeController::class, 'update']);        Route::delete('/auberges/{id}', [AubergeController::class, 'destroy']);
         Route::get('/auberges/{aubergeId}/caracteristiques', [CaracteristiqueController::class, 'getByAuberge']);
 
         // Gestion des Chambres (Admin)
         Route::post('/chambres', [ChambreController::class, 'store']);
-        Route::post('/chambres/{id}', [ChambreController::class, 'update']);
+        Route::match(['put', 'patch', 'post'], '/chambres/{id}', [ChambreController::class, 'update']);
         Route::delete('/chambres/{id}', [ChambreController::class, 'destroy']);
 
         // Gestion des Caractéristiques (Admin)

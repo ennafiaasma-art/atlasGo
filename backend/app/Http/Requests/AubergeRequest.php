@@ -23,29 +23,29 @@ class AubergeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $aubergeId = $this->route('auberge')?->id ?? $this->route('auberge');
+        $aubergeId = $this->route('id');
 
-        return [
-            'nom' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('auberges', 'nom')->ignore($aubergeId),
-            ],
-            'adresse' => 'required|string|max:255',
-            'ville' => 'nullable|string|max:255',
-            'prix' => 'nullable|numeric|min:1',
-            'description' => 'nullable|string',
-            'telephone' => [
-                'nullable',
-                'string',
-                'max:50',
-                Rule::unique('auberges', 'telephone')->ignore($aubergeId),
-            ],
-            'nombre_chambres' => 'nullable|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'destination_id' => 'required|exists:destinations,id',
-        ];
+       return [
+        'nom' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('auberges', 'nom')->ignore($aubergeId),
+        ],
+        'adresse' => 'required|string|max:255',
+        'ville' => 'nullable|string|max:255',
+        'prix' => 'nullable|numeric|min:1',
+        'description' => 'nullable|string',
+        'telephone' => [
+            'nullable',
+            'string',
+            'max:50',
+            Rule::unique('auberges', 'telephone')->ignore($aubergeId),
+        ],
+        'nombre_chambres' => 'nullable|integer',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        'destination_id' => 'required|exists:destinations,id',
+    ];
     }
 
     /**
