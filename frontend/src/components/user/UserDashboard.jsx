@@ -135,35 +135,38 @@ export default function UserDashboard() {
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         
-        {/* TOPBAR */}
-        <header className="h-20 bg-white border-b border-emerald-100 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-          <button 
-            onClick={() => setIsMobileOpen(true)}
-            className="lg:hidden p-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+     {/* TOPBAR */}
+<header className="h-20 bg-white border-b border-emerald-100 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+  <button 
+    onClick={() => setIsMobileOpen(true)}
+    className="lg:hidden p-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+  >
+    <Menu className="w-5 h-5" />
+  </button>
 
-          <div className="hidden sm:block bg-emerald-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl shadow-xs tracking-wider uppercase">
-            ESPACE VOYAGEUR - ATLASGO
-          </div>
+  <div className="hidden sm:block bg-emerald-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl shadow-xs tracking-wider uppercase">
+    ESPACE VOYAGEUR - ATLASGO
+  </div>
 
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-600 rounded-full"></span>
-            </button>
-            <div className="flex items-center gap-2 pl-3 border-l border-emerald-100">
-              <div className="w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {userData?.name?.charAt(0) || 'A'}
-              </div>
-              <span className="text-xs font-bold text-slate-700 hidden sm:inline">
-                {userData?.name || 'Asma'}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </div>
-          </div>
-        </header>
+  <div className="flex items-center gap-4">
+    {/* L'icône de notification a été supprimée d'ici */}
+
+    {/* Section Profil : Affiche "Ahlam", la lettre "A" et redirige vers le profil au clic */}
+    <div 
+      onClick={() => setActiveSection('profile')}
+      className="flex items-center gap-2 pl-3 border-l border-emerald-100 cursor-pointer group py-1 px-2 rounded-xl hover:bg-emerald-50 transition"
+      title="Voir mon profil"
+    >
+      <div className="w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:bg-emerald-800 transition">
+        {userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'}
+      </div>
+      <span className="text-xs font-bold text-slate-700 group-hover:text-emerald-700 transition hidden sm:inline">
+        {userData?.name || ""}
+      </span>
+      <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 transition" />
+    </div>
+  </div>
+</header>
 
         {/* CONTENU PRINCIPAL */}
         <main className="p-6 sm:p-8 space-y-8 flex-1">
@@ -172,7 +175,7 @@ export default function UserDashboard() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                  Bonjour, {userData?.name || 'Asma'} 👋
+                  Bonjour, {userData?.name} 
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">Explorez les destinations de la région par catégorie</p>
               </div>
