@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -114,6 +114,13 @@ export default function Login() {
             {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
+
+        <div className="mt-6 text-center text-xs text-slate-500">
+          Vous n'avez pas encore de compte ?{' '}
+          <Link to="/register" className="text-emerald-600 font-bold hover:underline">
+            S'inscrire
+          </Link>
+        </div>
       </div>
     </div>
   );

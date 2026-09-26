@@ -149,9 +149,7 @@ export default function UserDashboard() {
   </div>
 
   <div className="flex items-center gap-4">
-    {/* L'icône de notification a été supprimée d'ici */}
 
-    {/* Section Profil : Affiche "Ahlam", la lettre "A" et redirige vers le profil au clic */}
     <div 
       onClick={() => setActiveSection('profile')}
       className="flex items-center gap-2 pl-3 border-l border-emerald-100 cursor-pointer group py-1 px-2 rounded-xl hover:bg-emerald-50 transition"

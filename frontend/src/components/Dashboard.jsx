@@ -168,16 +168,14 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
 // 3. Section principale : Destinations & Auberges
 const ContentSection = ({ destinations, auberges, loading }) => {
   const navigate = useNavigate();
-  const [selectedDestination, setSelectedDestination] = useState(null); // Modal Destination Details
-  const [showLoginAlert, setShowLoginAlert] = useState(false); // Modal Alerte Connexion
+  const [selectedDestination, setSelectedDestination] = useState(null); 
+  const [showLoginAlert, setShowLoginAlert] = useState(false); 
 
   const handleReservationClick = (auberge) => {
-    // T-hqeq wach l-user m-connecté (Wach kayn token f localStorage)
     const token = localStorage.getItem('token');
     if (!token) {
       setShowLoginAlert(true);
     } else {
-      // Ila kan m-mconnecté, siffro l page de réservation dyal l'auberge
       navigate(`/reservations/create?auberge_id=${auberge.id}`);
     }
   };
