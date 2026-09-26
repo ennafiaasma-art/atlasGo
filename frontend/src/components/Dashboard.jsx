@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, MapPin, ChevronDown, Heart, User, Star,
   Compass, Trees, Building2, Landmark, Utensils, Users, Sparkles,
-  Loader, Bed, Calendar
+  Loader, Bed, Calendar, X, ExternalLink, ShieldAlert
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
@@ -168,9 +168,18 @@ const HeroSection = ({ onSearch, selectedCategory, setSelectedCategory }) => {
 // 3. Section principale : Destinations & Auberges
 const ContentSection = ({ destinations, auberges, loading }) => {
   const navigate = useNavigate();
+  const [selectedDestination, setSelectedDestination] = useState(null); // Modal Destination Details
+  const [showLoginAlert, setShowLoginAlert] = useState(false); // Modal Alerte Connexion
 
-  const handleReservationClick = () => {
-    navigate('/login');
+  const handleReservationClick = (auberge) => {
+    // T-hqeq wach l-user m-connecté (Wach kayn token f localStorage)
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setShowLoginAlert(true);
+    } else {
+      // Ila kan m-mconnecté, siffro l page de réservation dyal l'auberge
+      navigate(`/reservations/create?auberge_id=${auberge.id}`);
+    }
   };
 
   const getImageUrl = (imagePath) => {
@@ -196,7 +205,11 @@ const ContentSection = ({ destinations, auberges, loading }) => {
         ) : destinations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {destinations.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-xs border border-emerald-100 transition group">
+              <div 
+                key={item.id} 
+                onClick={() => setSelectedDestination(item)}
+                className="bg-white rounded-2xl overflow-hidden shadow-xs border border-emerald-100 transition group cursor-pointer hover:shadow-md"
+              >
                 <div className="relative h-40 bg-gray-100">
                   <img 
                     src={getImageUrl(item.image)} 
@@ -265,7 +278,7 @@ const ContentSection = ({ destinations, auberges, loading }) => {
                 
                 <div className="p-4 pt-0">
                   <button 
-                    onClick={handleReservationClick}
+                    onClick={() => handleReservationClick(auberge)}
                     className="w-full bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 text-xs font-semibold py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Calendar className="w-3.5 h-3.5" /> Réserver (Connexion requise)
@@ -280,6 +293,117 @@ const ContentSection = ({ destinations, auberges, loading }) => {
           </div>
         )}
       </section>
+
+      {/* MODAL: Informations de la Destination & Google Maps */}
+      {selectedDestination && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="relative h-48 bg-gray-100">
+              <img 
+                src={getImageUrl(selectedDestination.image)} 
+                alt={selectedDestination.nom_destination || selectedDestination.nom} 
+                className="w-full h-full object-cover"
+              />
+              <button 
+                onClick={() => setSelectedDestination(null)}
+                className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white p-1.5 rounded-full transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-3 left-3 bg-emerald-800 text-white text-[10px] font-bold px-3 py-1 rounded-lg shadow-xs">
+                {selectedDestination.categorie?.nom || 'Destination'}
+              </span>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                  {selectedDestination.nom_destination || selectedDestination.nom}
+                </h3>
+                <p className="text-gray-500 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  {selectedDestination.ville || 'Béni Mellal'}, {selectedDestination.province || 'Azilal'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-800">Description :</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  {selectedDestination.description || 'Aucune description détaillée disponible pour cette destination.'}
+                </p>
+              </div>
+
+              {/* Google Maps Embed / Link */}
+              <div className="space-y-2 pt-2 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-slate-800 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-rose-600" /> Localisation sur Maps
+                  </span>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((selectedDestination.nom_destination || selectedDestination.nom) + ' ' + (selectedDestination.ville || 'Beni Mellal'))}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-emerald-700 hover:underline font-semibold flex items-center gap-1"
+                  >
+                    Ouvrir Maps <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                
+                <div className="w-full h-36 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                  <iframe
+                    title="Google Maps Location"
+                    width="100%"
+                    height="100%"
+                    loading="lazy"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent((selectedDestination.nom_destination || selectedDestination.nom) + ' ' + (selectedDestination.ville || 'Beni Mellal'))}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                    className="border-0"
+                  ></iframe>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button 
+                  onClick={() => setSelectedDestination(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Alerte Connexion Requise */}
+      {showLoginAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-sm text-slate-900">Connexion Requise</h3>
+              <p className="text-xs text-gray-500">
+                Vous devez vous connecter à votre compte pour pouvoir effectuer une réservation dans cette auberge.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button 
+                onClick={() => setShowLoginAlert(false)}
+                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => navigate('/login')}
+                className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs"
+              >
+                Se connecter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
